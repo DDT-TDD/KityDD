@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Pie Chart</title>
+
+
+        <script src="../../kity/dist/kity.min.js"></script>
+
+        <script src="../../build.js"></script>
+        <script src="../lib/jquery-2.1.0.min.js"></script>
+        <style>
+            #container {
+                position: absolute;
+                left: 10px;
+                top: 10px;
+                height: 600px;
+                width: 400px;
+                /*background: #EEE;*/
+            }
+        </style>
+    </head>
+    <body>
+        <div id="container">
+            
+        </div>
+    </body>
+    <script>
+
+        $.ajax({
+            url: '../data/pie/donut.json',
+            success: function( data ) {
+                var p = new kc.PieChart('container', data);
+                p.update();
+            }
+        });
+
+    </script>
+</html>

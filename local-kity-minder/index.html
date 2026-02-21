@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>Kminder Editor</title>
+
+	<link href="favicon.ico" type="image/x-icon" rel="shortcut icon">
+
+	<!-- bower:css -->
+	<link rel="stylesheet" href="./bower_components/bootstrap/dist/css/bootstrap.css" />
+	<link rel="stylesheet" href="./bower_components/codemirror/lib/codemirror.css" />
+	<link rel="stylesheet" href="./bower_components/hotbox/hotbox.css" />
+	<link rel="stylesheet" href="./bower_components/kityminder-core/dist/kityminder.core.css" />
+	<link rel="stylesheet" href="./bower_components/color-picker/dist/color-picker.min.css" />
+	<!-- endbower -->
+
+	<!-- RESTORE FULL WEB MENU -->
+	<link rel="stylesheet" href="kityminder.editor.css">
+
+	<style>
+		html,
+		body {
+			margin: 0;
+			padding: 0;
+			height: 100%;
+			overflow: hidden;
+		}
+
+		/* Container for the editor */
+		kityminder-editor {
+			display: block;
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			left: 0;
+			right: 0;
+		}
+
+		/* Foldable Sidebar Styles */
+		.custom-sidebar {
+			position: absolute;
+			top: 60px;
+			right: -220px;
+			width: 220px;
+			background: #fff;
+			border: 1px solid #e1e5e9;
+			border-radius: 6px 0 0 6px;
+			box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.1);
+			transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+			z-index: 1000;
+			-webkit-app-region: no-drag;
+		}
+
+		.custom-sidebar.open {
+			right: 0;
+		}
+
+		.sidebar-toggle {
+			position: absolute;
+			left: -80px;
+			top: 20px;
+			width: 80px;
+			height: 36px;
+			background: #fff;
+			border: 1px solid #e1e5e9;
+			border-right: none;
+			border-radius: 6px 0 0 6px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			box-shadow: -2px 2px 5px rgba(0, 0, 0, 0.05);
+			font-size: 13px;
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			color: #333;
+			font-weight: 500;
+			user-select: none;
+		}
+
+		.sidebar-toggle:hover {
+			background: #f8f9fa;
+		}
+
+		.sidebar-content {
+			display: flex;
+			flex-direction: column;
+			padding: 15px;
+			gap: 12px;
+		}
+
+		.custom-sidebar .km-btn-item {
+			width: 100%;
+			margin: 0 !important;
+			text-align: left;
+			display: block;
+			box-sizing: border-box;
+		}
+
+		/* Custom Import/Export Buttons aligned with MarkDD UI */
+		.diy-btn {
+			-webkit-app-region: no-drag;
+			margin-left: 5px;
+			text-decoration: none;
+			cursor: pointer;
+			display: inline-flex;
+			align-items: center;
+		}
+
+		.diy-btn:hover {
+			text-decoration: none;
+		}
+
+		/* Hide the physical file input */
+		.file-input-wrapper {
+			position: relative;
+			overflow: hidden;
+			display: inline-flex;
+		}
+
+		.file-input-wrapper input[type=file] {
+			font-size: 100px;
+			position: absolute;
+			left: 0;
+			top: 0;
+			opacity: 0;
+			cursor: pointer;
+		}
+
+		/* Custom MarkDD buttons scoped to sidebar */
+		.custom-sidebar .km-btn-item {
+			border-radius: 6px;
+			padding: 6px 10px;
+			margin: 0 4px;
+			transition: all 0.2s ease;
+			background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+			border: 1px solid #dee2e6;
+			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+		}
+
+		.custom-sidebar .km-btn-item:hover {
+			background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+			transform: translateY(-1px);
+			box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+			border-color: #adb5bd;
+		}
+
+		.custom-sidebar .km-btn-item .km-btn-caption {
+			color: #495057;
+			font-weight: 500;
+			font-size: 13px;
+			letter-spacing: 0.2px;
+		}
+	</style>
+</head>
+
+<body ng-app="kityminderWindow" ng-controller="MainController">
+	<!-- Native KityMinder editor -->
+	<kityminder-editor on-init="initEditor(editor, minder)" data-theme="fresh-green"></kityminder-editor>
+
+	<!-- Foldable Sidebar for Advanced Actions -->
+	<div class="custom-sidebar" id="customSidebar">
+		<div class="sidebar-toggle" onclick="document.getElementById('customSidebar').classList.toggle('open')">
+			<span>⚙️ Actions</span>
+		</div>
+		<div class="sidebar-content">
+			<a class="km-btn-item diy-btn diy-insert" data-type="equation"><span class="km-btn-caption">∑ Insert
+					Equation</span></a>
+			<a class="km-btn-item diy-btn diy-insert" data-type="image"><span class="km-btn-caption">🖼️ Insert
+					Image</span></a>
+			<a class="km-btn-item diy-btn diy-insert" data-type="hyperlink"><span class="km-btn-caption">🔗 Insert
+					Link</span></a>
+			<a class="km-btn-item diy-btn diy-insert" data-type="note"><span class="km-btn-caption">📝 Insert
+					Note</span></a>
+			<hr style="border: 0; border-top: 1px solid #d2d6de; margin: 10px 15px;">
+			<a class="km-btn-item diy-btn" href="https://github.com/DDT-TDD" target="_blank"
+				title="Visit our GitHub"><span class="km-btn-caption">⭐ GitHub</span></a>
+			<div class="file-input-wrapper">
+				<a class="km-btn-item diy-btn"><span class="km-btn-caption">📥 Import Local File</span></a>
+			</div>
+			<a class="km-btn-item diy-btn diy-export" data-type="json"><span class="km-btn-caption">📤 Export
+					JSON</span></a>
+			<a class="km-btn-item diy-btn diy-export" data-type="png"><span class="km-btn-caption">🖼️ Export
+					PNG</span></a>
+			<a class="km-btn-item diy-btn diy-export" data-type="md"><span class="km-btn-caption">📝 Export
+					MD</span></a>
+		</div>
+	</div>
+
+	<iframe name="frameFile" style="display:none;"></iframe>
+	<!-- KityDD Custom Prompt Modal -->
+	<div class="modal fade" id="kityddPromptModal" tabindex="-1" role="dialog" aria-labelledby="kityddPromptLabel">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+							aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="kityddPromptLabel">Prompt</h4>
+				</div>
+				<div class="modal-body">
+					<div class="form-group">
+						<textarea class="form-control" id="kityddPromptInput" rows="3"
+							style="resize: vertical;"></textarea>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+					<button type="button" class="btn btn-primary" id="kityddPromptConfirm">Confirm</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
+<!-- CRITICAL ELECTRON/JQUERY ISOLATION FIX -->
+<script>
+	if (typeof module === 'object') {
+		window.nodeModule = module;
+		module = undefined;
+	}
+</script>
+
+<!-- bower:js -->
+<script src="./bower_components/jquery/dist/jquery.js"></script>
+<script src="./bower_components/jquery/dist/jquery.xml2json.js"></script>
+<script src="./bower_components/bootstrap/dist/js/bootstrap.js"></script>
+<script src="./bower_components/angular/angular.js"></script>
+<script src="./bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+<script src="./bower_components/codemirror/lib/codemirror.js"></script>
+<script src="./bower_components/codemirror/mode/xml/xml.js"></script>
+<script src="./bower_components/codemirror/mode/javascript/javascript.js"></script>
+<script src="./bower_components/codemirror/mode/css/css.js"></script>
+<script src="./bower_components/codemirror/mode/htmlmixed/htmlmixed.js"></script>
+<script src="./bower_components/codemirror/mode/markdown/markdown.js"></script>
+<script src="./bower_components/codemirror/addon/mode/overlay.js"></script>
+<script src="./bower_components/codemirror/mode/gfm/gfm.js"></script>
+<script src="./bower_components/angular-ui-codemirror/ui-codemirror.js"></script>
+<script src="./bower_components/marked/lib/marked.js"></script>
+<script src="./bower_components/kity/dist/kity.min.js"></script>
+<script src="./bower_components/hotbox/hotbox.js"></script>
+<script src="./bower_components/json-diff/json-diff.js"></script>
+<script src="./bower_components/kityminder-core/dist/kityminder.core.min.js"></script>
+<script src="./bower_components/color-picker/dist/color-picker.min.js"></script>
+<script src="./bower_components/zip/zip.js" charset="utf-8"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" charset="utf-8"></script>
+<!-- Professional Modules (Equations and Charts) -->
+<script src="./bower_components/kityformula/dist/kf-editor.all.min.js" charset="utf-8"></script>
+<script src="./bower_components/kitycharts/dist/kitychart.all.js" charset="utf-8"></script>
+<!-- endbower -->
+<script>
+	if (window.nodeModule) {
+		module = window.nodeModule;
+	}
+</script>
+
+<script src="language.js"></script>
+<script src="kityminder.editor.js"></script>
+<script src="diy.js"></script>
+
+<script>
+	angular.module('kityminderWindow', ['kityminderEditor'])
+		.controller('MainController', function ($scope) {
+			$scope.initEditor = function (editor, minder) {
+				window.editor = editor;
+				window.minder = minder;
+
+				// Apply MarkDD UI Overhaul
+				setTimeout(function () {
+					// Add icons and enhance button text
+					$('.km-btn-caption').each(function () {
+						var text = $(this).text().trim();
+						var icon = '';
+
+						// Add appropriate icons
+						if (text.includes('Export') || text.includes('导出')) {
+							icon = '📤 ';
+						} else if (text.includes('Import') || text.includes('导入')) {
+							icon = '📥 ';
+						} else if (text.includes('Json') || text.includes('JSON')) {
+							icon = '{ } ';
+						} else if (text.includes('PNG') || text.toLowerCase().includes('png')) {
+							icon = '🖼️ ';
+						} else if (text.includes('MD') || text.toLowerCase().includes('markdown')) {
+							icon = '📝 ';
+						}
+
+						if (icon && !text.startsWith(icon)) {
+							$(this).html(icon + text);
+						}
+					});
+				}, 500);
+			};
+		});
+</script>
+
+</html>

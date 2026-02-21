@@ -1,0 +1,27 @@
+{
+  "name": "kitydd",
+  "version": "1.0.0",
+  "description": "Professional Mindmap Tool - Electron implementation of KityMinder",
+  "main": "main.js",
+  "author": "DDT-TDD",
+  "scripts": {
+    "start": "electron .",
+    "dist": "npx electron-packager . KityDD --platform=win32 --arch=x64 --icon=icon.ico --overwrite"
+  },
+  "build": {
+    "appId": "com.kitydd.app",
+    "productName": "KityDD",
+    "npmRebuild": false,
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "portable",
+      "icon": "icon.ico"
+    }
+  },
+  "devDependencies": {
+    "electron": "^40.6.0",
+    "electron-builder": "^26.8.1"
+  }
+}
