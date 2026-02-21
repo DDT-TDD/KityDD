@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>探星第4模块</title>
+        <script src="js/kity.min.js"></script>
+        <script src="../../build.js"></script>
+        <script src="js/jquery-2.1.0.min.js"></script>
+        <style>
+            .container {
+                position: absolute;
+                top: 20px;
+                left: 20px;
+                right: 20px;
+                bottom: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="scatter" class="container"></div>
+    </body>
+    <script>
+        var scatter = new kc.BaseScatterChart( 'scatter', {
+            enableAnimation : false,
+            legend : {
+                enabled : false
+            }
+        } );
+
+        // scatter.update();
+   
+        $.ajax({
+            url: 'data/scatter2.json',
+            success: function( data ) {
+
+                // 不设置即为默认tooltip
+                // data.interaction = {
+                //     onCircleHover : function( info, circle ){
+                //         console.log( info, circle );
+                //     }
+                // };
+
+                scatter.update( data );
+
+
+
+                var coord = scatter.coordinate;
+                    rangeX = coord.param.rangeX,
+                    rangeY = coord.param.rangeY,
+                    xMin = coord.measurePointX(rangeX[0]),
+                    xMax = coord.measurePointX(rangeX[1]),
+                    yMin = coord.measurePointY(rangeY[0]),
+                    yMax = coord.measurePointY(rangeY[1]);
+                    xDur = xMax - xMin,
+                    yDur = yMin - yMax,//y轴方向相反
+                    dur = xDur * yDur;
+
+                var elementList = scatter.getPlots().getPlotsElements().getElementList();
+
+                var color = new kity.Color(255, 204, 191);
+                color.set('s', 80);
+                color.set('l', 75);
+                color.set('a', 0.75);
+
+                var deep = [];
+                elementList.forEach(function( circle, i ){
+                    var x = circle.param.x,
+                        y = circle.param.y;
+                    deep.push( ( x - xMin ) * ( yMin - y ) );
+                });
+
+                var deepMin = Math.min.apply( [], deep ),
+                    deepMax = Math.max.apply( [], deep ),
+                    deepDur = deepMax - deepMin;
+
+                elementList.forEach(function( circle, i ){
+
+                    var h = ( 1 - ( deep[i] - deepMin ) / deepDur ) * 240;
+
+                    color.set('h', h);
+
+                    circle.update({
+                        color : color.toRGBA()
+                    });
+
+                });
+
+
+            }
+        });
+
+    </script>
+</html>

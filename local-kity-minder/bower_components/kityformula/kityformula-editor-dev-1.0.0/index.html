@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>公式编辑器</title>
+    <meta charset="UTF-8">
+    <script src="dev-lib/jquery-1.11.0.min.js"></script>
+    <script src="dev-lib/kitygraph.all.js"></script>
+    <script src="dev-lib/kitygraph.all.js"></script>
+    <script src="dev-lib/kity-formula.all.js"></script>
+    <script src="dev-lib/kityformula-parser.all.js"></script>
+    <script src="dev-lib/dev-define.js"></script>
+    <script>
+        inc.config({
+            base: './src'
+        });
+    </script>
+    <script src="dev-lib/exports.js"></script>
+    <script src="dev-lib/dev-start.js"></script>
+    <!--<script src="dist/kf-editor.all.js"></script>-->
+    <script src="c.js"></script>
+    <script>
+        jQuery( function ($) {
+
+            var KFEditor = kf.Editor;
+
+            var editor = new KFEditor( $( "#kfEditorContainer" )[ 0 ] );
+
+//            editor.execCommand( 'render', 'abc+abcdef+b-c-\\frac {adasdfasd\\sum^a_bc}b+\\frac \\placeholder b\\div \\sqrt {\\placeholder} + b' );
+//            editor.execCommand( 'render', "{\\placeholder}" );
+
+//            editor.execCommand( 'render', "ab{x=\\frac {-b\\pm\\sqrt {b^2-4ac}}{2a}}cd" );
+//            editor.execCommand( 'render', "a^2_3+ab+\\sqrt{{\\frac ab}^2_3}+a^2_3" );
+//            editor.execCommand( 'render', 'abcdef+b-c-{\\frac {asdfadasdfasd} {b}}+{\\frac {\\placeholder} {b}}\\div {\\sqrt {\\placeholder}}' );
+//            editor.execCommand( "render", 'e=\\sum _{n\\to \\infty }\\left(1+\\frac{1233}{n}\\right)' );
+            editor.execCommand( "render", "\\placeholder" )
+//            editor.execCommand( "render", 'abc\\left(a+b\\right)def' );
+            c.start( editor );
+
+        } );
+    </script>
+    <link rel="stylesheet" href="assets/styles/page.css">
+    <link rel="stylesheet" href="assets/styles/base.css">
+    <link rel="stylesheet" href="assets/styles/ui.css">
+</head>
+<body>
+    <div id="kfEditorContainer" class="kf-editor"></div>
+    <input style="position: fixed; top: 0; left: 1000000px; width: 1000px; z-index: 9999;" id="hiddenInput" type="text">
+    <div id="cursor" class="virtual-cursor"></div>
+</body>
+</html>

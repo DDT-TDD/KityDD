@@ -1,0 +1,98 @@
+{
+
+    "chart": {
+        "type": "line"
+    },
+
+    "xAxis": {
+        "categories": [ "Apples", "Oranges", "Pears", "Grapes", "Bananas" ],
+        "ticks" : {
+            "enabled" : false
+        },
+        "margin" : {
+            "right" : 30,
+            "left" : 70
+        },
+        "label" : {
+            "at" : "left",
+            "margin" : 0,
+            "font" : {
+                "color" : "green",
+                "fontSize" : "12"
+            }
+        },
+        "axis" : {
+            "enabled" : true,
+            "arrow" : false
+        },
+        "unit" : {
+            "text" : "天"
+        },
+        "padding" : {
+            "left" : 30,
+            "right" : 30
+        }
+    },
+
+    "yAxis": {
+        "ticks" : {
+            "enabled" : false
+        },
+        "unit" : {
+            "text" : "元"
+        },
+        "label" : {
+            "at" : "left",
+            "margin" : 10,
+            "font" : {
+                "color" : "blue",
+                "fontSize" : "14"
+            }
+        },
+        "axis" : {
+            "enabled" : true,
+            "arrow" : false
+        },
+        "padding" : {
+            "top" : 40,
+            "bottom" : 0
+        },
+        "stacked" : false
+    },
+
+    "plotOptions" : {
+
+        "line" : {
+            "width" : 5,
+            "dot" : {
+                "enabled" : false
+            }
+        }
+
+    },
+
+    "interaction" : {
+        "hover" : {
+            "enabled" : true
+        }
+    },
+
+    "series": [
+        {
+            "name": "John",
+            "data": [5, 3, 4, 7, 2]
+        },
+        {
+            "name": "John",
+            "data": [2, 5, 3, 4, 7]
+        },
+        {
+            "name": "John",
+            "data": [5, 7, 3, 4, 2]
+        }
+    ]
+
+}
+
+
+

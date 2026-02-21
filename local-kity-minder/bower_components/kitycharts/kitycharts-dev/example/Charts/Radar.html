@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Radar Chart</title>
+        <script src="../../kity/dist/kity.min.js"></script>
+        <script src="../../build.js"></script>
+        <script src="../lib/jquery-2.1.0.min.js"></script>
+        <style>
+            #chart {
+                position: absolute;
+                left: 10px;
+                top: 10px;
+                right: 10px;
+                height: 300px;
+                /*background: #EEE;*/
+            }
+        </style>
+    </head>
+    <body>
+        <div id="chart">
+            
+        </div>
+    </body>
+	<script>
+		(function(){
+			var colors = {
+				items:['#7ecffe', 'red'],
+				net:'#ccc'
+			};
+
+			// var data = {
+			// 	'categories':['有创新精神','家庭式的','年轻化的','有社会责任感的','有经济实力的','低级趣味','过分关注性感的','老旧传统的'],
+			// 	'series':[
+			// 		{
+			// 			'name':'Messi',
+			// 			'data':[0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5]
+			// 		},
+   //                  {
+   //                      'name':'Ronaldo',
+   //                      'data':[0.5,0.5,0.5,0.8,0.5,0.9,0.5,0.5]
+   //                  }
+			// 	],
+			// };
+            var  data = {
+                'categories':['有创新精神','家庭式的','年轻化的','有社会责任感的','有经济实力的','低级趣味','过分关注性感的','老旧传统的'],
+                'series':[
+                    {
+                        'name':'unknown',
+                        'data':[0.5,0.5,0.5,0.8,0.5,0.9,0.5,0.5]
+                    }
+                ],
+            };
+			var chart = new kc.RadarChart('chart', { 
+                'colors' : colors,
+                'radius' : 80,
+                'netStyle' : 'outer'
+            });
+            chart.setColors({
+                items:['pink'],
+                net:'black'
+            });
+            chart.getData().update(data);
+		})();
+	</script>
+</html>

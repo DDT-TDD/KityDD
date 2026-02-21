@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Simple Relation Chart</title>
+
+        <script src="../../kity/dist/kity.min.js"></script>
+
+        <script src="../../build.js"></script>
+        <script src="../lib/jquery-2.1.0.min.js"></script>
+        <style>
+            #container {
+                position: absolute;
+                left: 10px;
+                top: 10px;
+                right: 10px;
+                height: 500px;
+                /*background: #EEE;*/
+            }
+        </style>
+    </head>
+    <body>
+        <div id="container">
+            
+        </div>
+    </body>
+    <script>
+        var relation = new kc.SimpleRelationChart( 'container', {
+            color : [ 'rgb(31, 119, 180)', 'rgb(174, 199, 232)', 'rgb(255, 127, 14)', 'rgb(255, 187, 120)', 'green' ]
+        } );
+
+        // relation.update(); //这一行可要可不要 
+   
+        $.ajax({
+            url: '../data/simplerelation/relation.json',
+            success: function( data ) {
+
+                // relation.setData(data).update( data );
+                relation.getData().update(data);
+
+            }
+        });
+
+
+    </script>
+</html>
