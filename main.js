@@ -60,7 +60,7 @@ function createMenu() {
               type: 'info',
               title: 'About KityDD',
               icon: appIcon,
-              message: 'KityDD Professional Mindmap IDE v1.0.0',
+              message: `KityDD Professional Mindmap IDE v${app.getVersion()}`,
               detail: 'A professional and robust Mindmapping Tool based on the KityMinder core.\nDesigned for high productivity with an enhanced foldable Action Interface.\n\n' +
                 'License Information:\n' +
                 '• KityDD Application: MIT License\n' +
@@ -97,6 +97,13 @@ function createWindow() {
 
   mainWindow.loadFile('local-kity-minder/index.html');
   createMenu();
+
+  mainWindow.on('close', (e) => {
+    if (mainWindow.isModified) {
+      e.preventDefault();
+      mainWindow.webContents.send('ask-close-confirmation');
+    }
+  });
 }
 
 app.whenReady().then(createWindow);
@@ -186,5 +193,36 @@ ipcMain.handle('save-file-dialog', async (event, payload) => {
     fs.writeFileSync(filePath, data, 'utf8');
   }
   return filePath;
+});
+
+ipcMain.handle('save-file-direct', async (event, payload) => {
+  const { filePath, data } = payload;
+  if (!filePath) return null;
+
+  try {
+    const fs = require('fs');
+    fs.writeFileSync(filePath, data, 'utf8');
+    return filePath;
+  } catch (err) {
+    console.error('Failed to save file:', err);
+    return null;
+  }
+});
+
+ipcMain.on('set-modified-status', (event, isModified) => {
+  if (mainWindow) {
+    mainWindow.isModified = isModified;
+    // Update window title or other indicators if needed
+    let title = 'KityDD';
+    if (isModified) title += ' *';
+    mainWindow.setTitle(title);
+  }
+});
+
+ipcMain.on('confirm-close', (event, confirm) => {
+  if (confirm && mainWindow) {
+    mainWindow.isModified = false;
+    mainWindow.close();
+  }
 });
 

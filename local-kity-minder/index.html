@@ -31,10 +31,84 @@
 		kityminder-editor {
 			display: block;
 			position: absolute;
-			top: 0;
+			top: 35px; /* Leave space for tab bar */
 			bottom: 0;
 			left: 0;
 			right: 0;
+		}
+
+		/* Tab Bar Styles */
+		#tabBar {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 35px;
+			background: #f1f3f4;
+			border-bottom: 1px solid #ddd;
+			display: flex;
+			align-items: center;
+			padding: 0 10px;
+			z-index: 1001;
+			overflow-x: auto;
+			white-space: nowrap;
+			-webkit-app-region: drag;
+		}
+
+		.tab {
+			display: inline-flex;
+			align-items: center;
+			padding: 0 15px;
+			height: 100%;
+			background: #e8eaed;
+			border: 1px solid #ddd;
+			border-bottom: none;
+			margin-right: 2px;
+			border-radius: 5px 5px 0 0;
+			cursor: pointer;
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			font-size: 13px;
+			color: #5f6368;
+			position: relative;
+			min-width: 120px;
+			max-width: 200px;
+			-webkit-app-region: no-drag;
+		}
+
+		.tab.active {
+			background: #fff;
+			color: #202124;
+			border-bottom: 1px solid #fff;
+			margin-bottom: -1px;
+			font-weight: 500;
+		}
+
+		.tab .tab-name {
+			flex: 1;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			margin-right: 8px;
+		}
+
+		.tab .tab-close {
+			color: #5f6368;
+			font-size: 16px;
+			width: 18px;
+			height: 18px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 50%;
+		}
+
+		.tab .tab-close:hover {
+			background: #dae0e5;
+			color: #202124;
+		}
+
+		.tab.modified .tab-name::after {
+			content: ' ●';
+			color: #1a73e8;
 		}
 
 		/* Foldable Sidebar Styles */
@@ -155,6 +229,9 @@
 </head>
 
 <body ng-app="kityminderWindow" ng-controller="MainController">
+	<!-- Tab Bar -->
+	<div id="tabBar"></div>
+
 	<!-- Native KityMinder editor -->
 	<kityminder-editor on-init="initEditor(editor, minder)" data-theme="fresh-green"></kityminder-editor>
 

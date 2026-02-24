@@ -1,6 +1,6 @@
 {
   "name": "kitydd",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Professional Mindmap Tool - Electron implementation of KityMinder",
   "main": "main.js",
   "author": "DDT-TDD",
