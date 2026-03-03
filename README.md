@@ -16,6 +16,11 @@ KityDD is a high-performance mind mapping tool built on the robust KityMinder en
   - **Import**: Support for `.km`, `.json`, `.xmind`, `.mmap` (MindManager), and `.md` (Markdown).
   - **Export**: Export your maps as `.km`, `.json`, `.png` (Image), or `.md` (Markdown).
 - **Professional About Dialog**: Built-in attribution, licensing information, and keyboard shortcuts.
+- **Multi-Session Tabs**: Work on multiple mindmaps simultaneously with a tabbed interface.
+- **Search & Replace**: Quickly find and replace text across all nodes (Ctrl+F).
+- **Recent Files**: Track up to 10 recently opened mindmaps in File > Open Recent.
+- **Text Alignment**: Left / Center / Right alignment controls for multi-line nodes.
+- **Spellcheck**: Spelling suggestions and "Add to Dictionary" via right-click context menu.
 - **Desktop Ready**: Fully packaged as a standalone Windows executable for offline use.
 
 ## 🚀 Getting Started
@@ -45,11 +50,11 @@ KityDD is a high-performance mind mapping tool built on the robust KityMinder en
 
 ### Building the Executable
 
-To build the standalone Windows executable:
+To build the standalone Windows portable executable:
 ```bash
-npm run dist
+npm run build:portable
 ```
-The output will be located in the `dist` or `KityDD-win32-x64` directory.
+The output will be located in the `dist` directory.
 
 ## ⌨️ Keyboard Shortcuts
 

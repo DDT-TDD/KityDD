@@ -1360,7 +1360,17 @@
                     }
                 }, false);
                 container.addEventListener("contextmenu", function (e) {
-                    e.preventDefault();
+                    var target = e.target;
+                    var isEditable = !!(target && (
+                        target.tagName === 'INPUT' ||
+                        target.tagName === 'TEXTAREA' ||
+                        target.isContentEditable ||
+                        (target.closest && target.closest('[contenteditable="true"]'))
+                    ));
+
+                    if (!isEditable) {
+                        e.preventDefault();
+                    }
                 });
                 container.addEventListener("mouseup", function (e) {
                     if (fsm.state() != "normal") {
@@ -2100,7 +2110,7 @@
 
 
         $templateCache.put('ui/directive/fontOperator/fontOperator.html',
-            "<div class=\"font-operator\"><div class=\"dropdown font-family-list\" dropdown><div class=\"dropdown-toggle current-font-item\" dropdown-toggle ng-disabled=\"minder.queryCommandState('fontfamily') === -1\"><a href class=\"current-font-family\" title=\"{{ 'fontfamily' | lang: 'ui' }}\">{{ getFontfamilyName(minder.queryCommandValue('fontfamily')) }}</a> <span class=\"caret\"></span></div><ul class=\"dropdown-menu font-list\"><li ng-repeat=\"f in fontFamilyList\" class=\"font-item-wrap\"><a ng-click=\"minder.execCommand('fontfamily', f.val)\" class=\"font-item\" ng-class=\"{ 'font-item-selected' : f == minder.queryCommandValue('fontfamily') }\" ng-style=\"{'font-family': f.val }\">{{ f.name }}</a></li></ul></div><div class=\"dropdown font-size-list\" dropdown><div class=\"dropdown-toggle current-font-item\" dropdown-toggle ng-disabled=\"minder.queryCommandState('fontsize') === -1\"><a href class=\"current-font-size\" title=\"{{ 'fontsize' | lang: 'ui' }}\">{{ getFontSize(minder.queryCommandValue('fontsize')) }}</a> <span class=\"caret\"></span></div><ul class=\"dropdown-menu font-list\"><li ng-repeat=\"f in fontSizeList\" class=\"font-item-wrap\"><a ng-click=\"minder.execCommand('fontsize', f)\" class=\"font-item\" ng-class=\"{ 'font-item-selected' : f == minder.queryCommandValue('fontsize') }\" ng-style=\"{'font-size': f + 'px'}\">{{ f }}</a></li></ul></div><span class=\"s-btn-icon font-bold\" ng-click=\"minder.queryCommandState('bold') === -1 || minder.execCommand('bold')\" ng-class=\"{'font-bold-selected' : minder.queryCommandState('bold') == 1}\" ng-disabled=\"minder.queryCommandState('bold') === -1\"></span> <span class=\"s-btn-icon font-italics\" ng-click=\"minder.queryCommandState('italic') === -1 || minder.execCommand('italic')\" ng-class=\"{'font-italics-selected' : minder.queryCommandState('italic') == 1}\" ng-disabled=\"minder.queryCommandState('italic') === -1\"></span><div class=\"font-color-wrap\"><span class=\"quick-font-color\" ng-click=\"minder.queryCommandState('forecolor') === -1 || minder.execCommand('forecolor', foreColor)\" ng-disabled=\"minder.queryCommandState('forecolor') === -1\">A</span> <span color-picker class=\"font-color\" set-color=\"setDefaultColor()\" ng-disabled=\"minder.queryCommandState('forecolor') === -1\"><span class=\"caret\"></span></span> <span class=\"font-color-preview\" ng-style=\"{ 'background-color': foreColor }\" ng-click=\"minder.queryCommandState('forecolor') === -1 || minder.execCommand('forecolor', foreColor)\" ng-disabled=\"minder.queryCommandState('forecolor') === -1\"></span></div><color-panel minder=\"minder\" class=\"inline-directive\"></color-panel></div>"
+            "<div class=\"font-operator\"><div class=\"dropdown font-family-list\" dropdown><div class=\"dropdown-toggle current-font-item\" dropdown-toggle ng-disabled=\"minder.queryCommandState('fontfamily') === -1\"><a href class=\"current-font-family\" title=\"{{ 'fontfamily' | lang: 'ui' }}\">{{ getFontfamilyName(minder.queryCommandValue('fontfamily')) }}</a> <span class=\"caret\"></span></div><ul class=\"dropdown-menu font-list\"><li ng-repeat=\"f in fontFamilyList\" class=\"font-item-wrap\"><a ng-click=\"minder.execCommand('fontfamily', f.val)\" class=\"font-item\" ng-class=\"{ 'font-item-selected' : f == minder.queryCommandValue('fontfamily') }\" ng-style=\"{'font-family': f.val }\">{{ f.name }}</a></li></ul></div><div class=\"dropdown font-size-list\" dropdown><div class=\"dropdown-toggle current-font-item\" dropdown-toggle ng-disabled=\"minder.queryCommandState('fontsize') === -1\"><a href class=\"current-font-size\" title=\"{{ 'fontsize' | lang: 'ui' }}\">{{ getFontSize(minder.queryCommandValue('fontsize')) }}</a> <span class=\"caret\"></span></div><ul class=\"dropdown-menu font-list\"><li ng-repeat=\"f in fontSizeList\" class=\"font-item-wrap\"><a ng-click=\"minder.execCommand('fontsize', f)\" class=\"font-item\" ng-class=\"{ 'font-item-selected' : f == minder.queryCommandValue('fontsize') }\" ng-style=\"{'font-size': f + 'px'}\">{{ f }}</a></li></ul></div><span class=\"s-btn-icon font-bold\" ng-click=\"minder.queryCommandState('bold') === -1 || minder.execCommand('bold')\" ng-class=\"{'font-bold-selected' : minder.queryCommandState('bold') == 1}\" ng-disabled=\"minder.queryCommandState('bold') === -1\"></span> <span class=\"s-btn-icon font-italics\" ng-click=\"minder.queryCommandState('italic') === -1 || minder.execCommand('italic')\" ng-class=\"{'font-italics-selected' : minder.queryCommandState('italic') == 1}\" ng-disabled=\"minder.queryCommandState('italic') === -1\"></span><div class=\"text-align-wrap\"><span class=\"align-btn align-left\" ng-click=\"setTextAlign('left')\" ng-class=\"{ 'align-selected': getTextAlign() === 'left' }\" title=\"Align Left\">L</span> <span class=\"align-btn align-center\" ng-click=\"setTextAlign('center')\" ng-class=\"{ 'align-selected': getTextAlign() === 'center' }\" title=\"Align Center\">C</span> <span class=\"align-btn align-right\" ng-click=\"setTextAlign('right')\" ng-class=\"{ 'align-selected': getTextAlign() === 'right' }\" title=\"Align Right\">R</span></div><div class=\"font-color-wrap\"><span class=\"quick-font-color\" ng-click=\"minder.queryCommandState('forecolor') === -1 || minder.execCommand('forecolor', foreColor)\" ng-disabled=\"minder.queryCommandState('forecolor') === -1\">A</span> <span color-picker class=\"font-color\" set-color=\"setDefaultColor()\" ng-disabled=\"minder.queryCommandState('forecolor') === -1\"><span class=\"caret\"></span></span> <span class=\"font-color-preview\" ng-style=\"{ 'background-color': foreColor }\" ng-click=\"minder.queryCommandState('forecolor') === -1 || minder.execCommand('forecolor', foreColor)\" ng-disabled=\"minder.queryCommandState('forecolor') === -1\"></span></div><color-panel minder=\"minder\" class=\"inline-directive\"></color-panel></div>"
         );
 
 
@@ -2180,7 +2190,7 @@
 
 
         $templateCache.put('ui/directive/searchBox/searchBox.html',
-            "<div id=\"search\" class=\"search-box clearfix\" ng-show=\"showSearch\"><div class=\"input-group input-group-sm search-input-wrap\"><input type=\"text\" id=\"search-input\" class=\"form-control search-input\" ng-model=\"keyword\" ng-keydown=\"handleKeyDown($event)\" aria-describedby=\"basic-addon2\"> <span class=\"input-group-addon search-addon\" id=\"basic-addon2\" ng-show=\"showTip\" ng-bind=\" + curIndex + ' / ' + resultNum + ' '\"></span></div><div class=\"btn-group btn-group-sm prev-and-next-btn\" role=\"group\"><button type=\"button\" class=\"btn btn-default\" ng-click=\"doSearch(keyword, 'prev')\"><span class=\"glyphicon glyphicon-chevron-up\"></span></button> <button type=\"button\" class=\"btn btn-default\" ng-click=\"doSearch(keyword, 'next')\"><span class=\"glyphicon glyphicon-chevron-down\"></span></button></div><div class=\"close-search\" ng-click=\"exitSearch()\"><span class=\"glyphicon glyphicon-remove\"></span></div></div>"
+            "<div id=\"search\" class=\"search-box clearfix\" ng-show=\"showSearch\"><div class=\"search-row\"><div class=\"input-group input-group-sm search-input-wrap\"><input type=\"text\" ng-attr-id=\"{{searchInputId}}\" class=\"form-control search-input\" ng-model=\"keyword\" ng-keydown=\"handleKeyDown($event)\" aria-describedby=\"basic-addon2\"> <span class=\"input-group-addon search-addon\" id=\"basic-addon2\" ng-show=\"showTip\" ng-bind=\"' ' + curIndex + ' / ' + resultNum + ' '\"></span></div><div class=\"btn-group btn-group-sm prev-and-next-btn\" role=\"group\"><button type=\"button\" class=\"btn btn-default\" ng-click=\"doSearch(keyword, 'prev')\"><span class=\"glyphicon glyphicon-chevron-up\"></span></button> <button type=\"button\" class=\"btn btn-default\" ng-click=\"doSearch(keyword, 'next')\"><span class=\"glyphicon glyphicon-chevron-down\"></span></button></div><div class=\"close-search\" ng-click=\"exitSearch()\"><span class=\"glyphicon glyphicon-remove\"></span></div></div><div class=\"search-row search-replace-row\"><input type=\"text\" class=\"form-control input-sm replace-input\" ng-model=\"replaceKeyword\" placeholder=\"Replace with\"> <div class=\"btn-group btn-group-sm replace-btn-group\" role=\"group\"><button type=\"button\" class=\"btn btn-default\" ng-click=\"replaceCurrent()\">Replace</button> <button type=\"button\" class=\"btn btn-default\" ng-click=\"replaceAll()\">Replace All</button></div></div></div>"
         );
 
 
@@ -3058,6 +3068,40 @@
                             val = fontsize;
                         return val;
                     }
+
+                    scope.getTextAlign = function () {
+                        var currentNode = minder.getSelectedNode();
+                        if (!currentNode) {
+                            return 'center';
+                        }
+                        return currentNode.getData('text-align') || 'center';
+                    };
+
+                    scope.setTextAlign = function (align) {
+                        var nodes = minder.getSelectedNodes();
+                        if (!nodes || !nodes.length) {
+                            return;
+                        }
+
+                        nodes.forEach(function (node) {
+                            node.setData('text-align', align);
+                            node.render();
+                        });
+
+                        minder.layout();
+
+                        // Immediate pass
+                        if (window.applyNodeTextAlignmentForAll) {
+                            window.applyNodeTextAlignmentForAll();
+                        }
+
+                        // Delayed pass – covers layout-animation re-renders
+                        setTimeout(function () {
+                            if (window.applyNodeTextAlignmentForAll) {
+                                window.applyNodeTextAlignmentForAll();
+                            }
+                        }, 400);
+                    };
                 }
             }
         });
@@ -3589,30 +3633,64 @@
                     });
 
 
+                    function sanitizePreviewHtml(rawHtml) {
+                        var wrapper = document.createElement('div');
+                        wrapper.innerHTML = rawHtml || '';
+
+                        var blockedTags = wrapper.querySelectorAll('script,style,iframe,object,embed,link,meta');
+                        blockedTags.forEach(function (el) {
+                            if (el.parentNode) {
+                                el.parentNode.removeChild(el);
+                            }
+                        });
+
+                        var allNodes = wrapper.querySelectorAll('*');
+                        allNodes.forEach(function (el) {
+                            var attrs = [].slice.call(el.attributes || []);
+                            attrs.forEach(function (attr) {
+                                var name = attr.name;
+                                var value = attr.value || '';
+                                if (/^on/i.test(name)) {
+                                    el.removeAttribute(name);
+                                    return;
+                                }
+                                if ((name === 'href' || name === 'src' || name === 'xlink:href') && /^\s*javascript:/i.test(value)) {
+                                    el.removeAttribute(name);
+                                }
+                            });
+                        });
+
+                        return wrapper.innerHTML;
+                    }
+
                     var previewTimer;
-                    minder.on('shownoterequest', function (e) {
+                    var onShowNoteRequest = function (e) {
 
                         previewTimer = setTimeout(function () {
                             preview(e.node, e.keyword);
                         }, 300);
-                    });
-                    minder.on('hidenoterequest', function () {
+                    };
+                    minder.on('shownoterequest', onShowNoteRequest);
+                    var onHideNoteRequest = function () {
                         clearTimeout(previewTimer);
 
                         scope.showNotePreviewer = false;
                         //scope.$apply();
-                    });
+                    };
+                    minder.on('hidenoterequest', onHideNoteRequest);
 
                     var previewLive = false;
-                    $(document).on('mousedown mousewheel DOMMouseScroll', function () {
+                    var onDocumentPointer = function () {
                         if (!previewLive) return;
                         scope.showNotePreviewer = false;
                         scope.$apply();
-                    });
+                    };
+                    $(document).on('mousedown mousewheel DOMMouseScroll', onDocumentPointer);
 
-                    element.on('mousedown mousewheel DOMMouseScroll', function (e) {
+                    var onElementPointer = function (e) {
                         e.stopPropagation();
-                    });
+                    };
+                    element.on('mousedown mousewheel DOMMouseScroll', onElementPointer);
 
                     function preview(node, keyword) {
                         var icon = node.getRenderer('NoteIconRenderer').getRenderShape();
@@ -3623,9 +3701,10 @@
 
                         var html = marked(note);
                         if (keyword) {
-                            html = html.replace(new RegExp('(' + keyword + ')', 'ig'), '<span class="highlight">$1</span>');
+                            var escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                            html = html.replace(new RegExp('(' + escapedKeyword + ')', 'ig'), '<span class="highlight">$1</span>');
                         }
-                        scope.noteContent = $sce.trustAsHtml(html);
+                        scope.noteContent = $sce.trustAsHtml(sanitizePreviewHtml(html));
                         scope.$apply(); // 让浏览器重新渲染以获取 previewer 提示框的尺寸
 
                         var cw = $($container[0]).width();
@@ -3656,6 +3735,14 @@
 
                         scope.$apply();
                     }
+
+                    scope.$on('$destroy', function () {
+                        clearTimeout(previewTimer);
+                        minder.off('shownoterequest', onShowNoteRequest);
+                        minder.off('hidenoterequest', onHideNoteRequest);
+                        $(document).off('mousedown mousewheel DOMMouseScroll', onDocumentPointer);
+                        element.off('mousedown mousewheel DOMMouseScroll', onElementPointer);
+                    });
                 }
             }
         }]);
@@ -3852,11 +3939,19 @@
                 controller: ["$scope", function ($scope) {
                     var minder = $scope.minder;
                     var editor = window.editor;
+                    $scope.searchInputId = 'search-input-' + Math.random().toString(36).slice(2);
                     $scope.handleKeyDown = handleKeyDown;
                     $scope.doSearch = doSearch;
                     $scope.exitSearch = exitSearch;
+                    $scope.replaceCurrent = replaceCurrent;
+                    $scope.replaceAll = replaceAll;
                     $scope.showTip = false;
                     $scope.showSearch = false;
+                    $scope.replaceKeyword = '';
+
+                    function getSearchInput() {
+                        return $('#' + $scope.searchInputId);
+                    }
 
                     // 处理输入框按键事件
                     function handleKeyDown(e) {
@@ -3870,35 +3965,42 @@
                     }
 
                     function exitSearch() {
-                        $('#search-input').blur();
+                        getSearchInput().blur();
                         $scope.showSearch = false;
                         minder.fire('hidenoterequest');
-                        editor.receiver.selectAll();
+                        if (editor && editor.receiver && editor.receiver.element) {
+                            editor.receiver.element.focus();
+                        }
                     }
 
                     function enterSearch() {
                         $scope.showSearch = true;
                         setTimeout(function () {
-                            $('#search-input').focus();
+                            getSearchInput().focus();
                         }, 10);
 
                         if ($scope.keyword) {
-                            $('#search-input')[0].setSelectionRange(0, $scope.keyword.length);
+                            var input = getSearchInput()[0];
+                            if (input && input.setSelectionRange) {
+                                input.setSelectionRange(0, $scope.keyword.length);
+                            }
                         }
                     }
 
-                    $('body').on('keydown', function (e) {
+                    var onBodyKeyDown = function (e) {
                         if (e.keyCode == 70 && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
                             enterSearch();
 
                             $scope.$apply();
                             e.preventDefault();
                         }
-                    });
+                    };
+                    $('body').on('keydown', onBodyKeyDown);
 
-                    minder.on('searchNode', function () {
+                    var onSearchNode = function () {
                         enterSearch();
-                    });
+                    };
+                    minder.on('searchNode', onSearchNode);
 
 
                     var nodeSequence = [];
@@ -3939,7 +4041,7 @@
                         minder.fire('hidenoterequest');
 
                         if (!keyword || !/\S/.exec(keyword)) {
-                            $('#search-input').focus();
+                            getSearchInput().focus();
                             return;
                         }
 
@@ -3973,7 +4075,7 @@
                             function setSearchResult(node, previewKeyword) {
                                 minder.execCommand('camera', node, 50);
                                 setTimeout(function () {
-                                    minder.select(node, true);
+                                    minder.select(node);
                                     if (!node.isExpanded()) minder.execCommand('expand', true);
                                     if (previewKeyword) {
                                         minder.fire('shownoterequest', { node: node, keyword: previewKeyword });
@@ -3982,6 +4084,101 @@
                             }
                         }
                     }
+
+                    function escapeRegExp(value) {
+                        return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    }
+
+                    function replaceTextValue(source, findValue, replaceValue, isAll) {
+                        if (!source || !findValue) return source;
+                        var flags = isAll ? 'ig' : 'i';
+                        return source.replace(new RegExp(escapeRegExp(findValue), flags), replaceValue);
+                    }
+
+                    function replaceInNode(node, findValue, replaceValue, isAll) {
+                        var changed = false;
+                        var currentText = node.getText() || '';
+                        var replacedText = replaceTextValue(currentText, findValue, replaceValue, isAll);
+                        if (replacedText !== currentText) {
+                            node.setText(replacedText);
+                            changed = true;
+                        }
+
+                        var currentNote = node.getData('note') || '';
+                        var replacedNote = replaceTextValue(currentNote, findValue, replaceValue, isAll);
+                        if (replacedNote !== currentNote) {
+                            node.setData('note', replacedNote);
+                            changed = true;
+                        }
+
+                        if (changed) {
+                            node.render();
+                        }
+                        return changed;
+                    }
+
+                    function replaceCurrent() {
+                        if (!$scope.keyword || !/\S/.exec($scope.keyword)) {
+                            getSearchInput().focus();
+                            return;
+                        }
+
+                        var normalizedKeyword = $scope.keyword.toLowerCase();
+                        if (doSearch.lastKeyword != normalizedKeyword || !searchSequence.length) {
+                            doSearch($scope.keyword, 'next');
+                        }
+
+                        if (!searchSequence.length) {
+                            return;
+                        }
+
+                        var currentIndex = (typeof doSearch.lastIndex === 'number') ? doSearch.lastIndex : 0;
+                        currentIndex = Math.max(0, Math.min(currentIndex, searchSequence.length - 1));
+                        var target = searchSequence[currentIndex];
+                        var didReplace = replaceInNode(target.node, $scope.keyword, $scope.replaceKeyword || '', false);
+
+                        if (didReplace) {
+                            minder.layout(120);
+                            minder.fire('contentchange');
+                            makeNodeSequence();
+                            makeSearchSequence(normalizedKeyword);
+                        }
+
+                        doSearch($scope.keyword, 'next');
+                    }
+
+                    function replaceAll() {
+                        if (!$scope.keyword || !/\S/.exec($scope.keyword)) {
+                            getSearchInput().focus();
+                            return;
+                        }
+
+                        var changedCount = 0;
+                        var replaceValue = $scope.replaceKeyword || '';
+                        var keyword = $scope.keyword;
+
+                        nodeSequence.forEach(function (node) {
+                            if (replaceInNode(node, keyword, replaceValue, true)) {
+                                changedCount++;
+                            }
+                        });
+
+                        if (changedCount) {
+                            minder.layout(180);
+                            minder.fire('contentchange');
+                        }
+
+                        makeNodeSequence();
+                        doSearch.lastKeyword = null;
+                        doSearch.lastIndex = 0;
+                        doSearch($scope.keyword, 'next');
+                    }
+
+                    $scope.$on('$destroy', function () {
+                        $('body').off('keydown', onBodyKeyDown);
+                        minder.off('searchNode', onSearchNode);
+                        minder.off('contentchange', makeNodeSequence);
+                    });
 
 
                 }]
@@ -3997,6 +4194,7 @@
                 },
                 replace: true,
                 link: function (scope) {
+                    var minder = scope.minder;
                     scope.enterSearch = enterSearch;
 
                     function enterSearch() {
@@ -4226,28 +4424,28 @@
                         var $tabContent = $('.tab-content');
                         var $minderEditor = $('.minder-editor');
 
-                        $tabContent.animate({
-                            height: 0,
-                            display: 'none'
+                        $tabContent.stop(true, true).animate({
+                            height: 0
+                        }, 120, function () {
+                            $tabContent.css('display', 'none');
                         });
 
-                        $minderEditor.animate({
+                        $minderEditor.stop(true, true).animate({
                             top: '32px'
-                        });
+                        }, 120);
                     }
 
                     function openTopTab() {
                         var $tabContent = $('.tab-content');
                         var $minderEditor = $('.minder-editor');
 
-                        $tabContent.animate({
-                            height: '60px',
-                            display: 'block'
-                        });
+                        $tabContent.stop(true, true).css('display', 'block').animate({
+                            height: '60px'
+                        }, 120);
 
-                        $minderEditor.animate({
+                        $minderEditor.stop(true, true).animate({
                             top: '92px'
-                        });
+                        }, 120);
                     }
                 }
             }

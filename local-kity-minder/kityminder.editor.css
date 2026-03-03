@@ -1035,7 +1035,7 @@ div a.theme-item {
   background-position: 0 -220px;
 }
 .font-operator {
-  width: 170px;
+  width: 230px;
   display: inline-block;
   vertical-align: middle;
   font-size: 12px;
@@ -1105,6 +1105,36 @@ div a.theme-item {
 .font-bold-selected,
 .font-italics-selected {
   background-color: #87a9da;
+}
+.text-align-wrap {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+.text-align-wrap .align-btn {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+  text-align: center;
+  font-size: 11px;
+  margin: 0 1px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  user-select: none;
+}
+.text-align-wrap .align-btn:hover {
+  background-color: #eff3fa;
+}
+.text-align-wrap .align-btn:active {
+  background-color: #c4d0ee;
+}
+.text-align-wrap .align-btn.align-selected {
+  background-color: #87a9da;
+}
+.text-align-wrap .align-btn[disabled] {
+  opacity: 0.5;
+  cursor: default;
 }
 .font-color-wrap {
   display: inline-block;
@@ -1349,10 +1379,14 @@ div a.theme-item {
   position: relative;
   top: 0;
   z-index: 3;
-  width: 360px;
-  height: 40px;
+  width: 430px;
+  min-height: 66px;
   padding: 3px 6px;
   opacity: 1;
+}
+.search-box .search-row {
+  display: block;
+  clear: both;
 }
 .search-box .search-input-wrap,
 .search-box .prev-and-next-btn {
@@ -1377,10 +1411,22 @@ div a.theme-item {
   background-color: #999;
 }
 .search-box .search-input-wrap {
-  width: 240px;
+  width: 280px;
 }
 .search-box .prev-and-next-btn {
   margin-left: 5px;
+}
+.search-box .search-replace-row {
+  margin-top: 4px;
+}
+.search-box .replace-input {
+  float: left;
+  width: 205px;
+  height: 28px;
+}
+.search-box .replace-btn-group {
+  float: left;
+  margin-left: 6px;
 }
 .search-box .prev-and-next-btn .btn:focus {
   outline: none;

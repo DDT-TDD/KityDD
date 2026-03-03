@@ -1,6 +1,37 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
+## [1.1.1] - 2026-03-03
+
+### Added
+- **Node Text Alignment Controls**: Added explicit Left / Center / Right alignment controls in the font toolbar.
+- **Recent Files Tracking**: Track up to 10 recently opened mindmaps in `File > Open Recent` menu.
+- **Clear Recent Files**: Option to clear the recent files list from the menu.
+- **Recent Files Persistence**: Automatically stores recent files in user data directory; auto-filters deleted files.
+- **Portable EXE Build Script**: Added `build:portable` script using `electron-builder` for Windows portable executable output.
+- **Windows Taskbar Integration**: Recent mindmaps are added to Windows OS-level recent documents list.
+
+### Changed
+- Updated application version metadata to **1.1.1** in `package.json` and `package-lock.json`.
+- Bundled JSZip locally — removed CDN dependency for XMind/MindManager import (now works offline).
+- Fixed window icon reference (`ico.png` → `icon.png`).
+- Updated HTML page title from "Kminder Editor" to "KityDD".
+- Search input handling is now instance-scoped to avoid global `#search-input` collisions.
+- **Improved Text Alignment**: Refactored alignment system to use per-node `noderender` event hook instead of global polling.
+  - Eliminates stale `x` coordinate carry-over between renders.
+  - Uses measured text item boundaries instead of predicted box widths.
+  - Alignment now resets to native defaults on every render, ensuring smooth visual behavior.
+
+### Fixed
+- Fixed a regression where node text editing could stop working after search navigation due to additive selection behavior.
+- Fixed text alignment that would go "nuts" after initial render due to concurrent global alignment traversal.
+- Hardened search note highlighting by escaping regex special characters in user-entered keywords.
+- Fixed `searchBtn` directive scope reference to use its bound `minder` instance.
+- Added lifecycle cleanup for search and note preview listeners to avoid duplicated handlers and memory leaks.
+- Hardened note preview HTML handling before trust to reduce unsafe markup risks.
+- Fixed language initialization null access (`language.value` before null-check).
+- Removed stale `Ctrl+Shift+C` text centering toggle from documentation.
  
 ## [1.1.0] - 2026-02-24
 

@@ -134,7 +134,7 @@
         setTimeout(() => $('#kityddPromptInput').focus(), 300);
     };
 
-    ipcRenderer.on('menu-command', async (event, command) => {
+    ipcRenderer.on('menu-command', async (event, command, arg) => {
         if (!editor || !editor.minder) return;
 
         const currentSession = sessions.find(s => s.id === activeSessionId);
@@ -143,6 +143,55 @@
             case 'new':
                 createNewSession();
                 break;
+            case 'open-recent': {
+                // arg is the file path passed from the recent‐files menu
+                if (!arg) break;
+                const recentResult = await ipcRenderer.invoke('read-file-by-path', arg);
+                if (!recentResult) {
+                    alert('Could not open file: ' + arg);
+                    break;
+                }
+                // Re-use the same import logic as 'open'
+                const recentFileName = recentResult.filePath.split(/[\\/]/).pop();
+                const recentSession = await createNewSession(recentFileName, null, recentResult.filePath);
+                let rExt = recentResult.extension;
+                try {
+                    if (rExt === 'xmind') {
+                        await importXMindFromBase64(recentResult.content);
+                    } else if (rExt === 'mmap') {
+                        await importMindManagerFromBase64(recentResult.content);
+                    } else if (rExt === 'mm') {
+                        await importFreeMindContent(recentResult.content);
+                    } else if (rExt === 'md' || rExt === 'markdown') {
+                        await editor.minder.importData('markdown', recentResult.content);
+                    } else if (rExt === 'json' || rExt === 'km') {
+                        try {
+                            let jsonData = JSON.parse(recentResult.content);
+                            let importDataStr = jsonData.root ? JSON.stringify(jsonData) : JSON.stringify({ root: jsonData, template: 'default', theme: 'fresh-green', version: '1.4.50' });
+                            await editor.minder.importData('json', importDataStr);
+                        } catch (err) {
+                            await editor.minder.importData('json', recentResult.content);
+                        }
+                    } else {
+                        await editor.minder.importData(rExt, recentResult.content);
+                    }
+                    const finalExport = await editor.minder.exportData('json');
+                    recentSession.content = finalExport;
+                    recentSession.isModified = false;
+                    renderTabs();
+                    setTimeout(() => {
+                        if (editor.minder) {
+                            editor.minder.execCommand('camera', editor.minder.getRoot(), 100);
+                            if (window.applyNodeTextAlignmentForAll) window.applyNodeTextAlignmentForAll();
+                            refreshNavigator();
+                        }
+                    }, 200);
+                } catch (err) {
+                    console.error('Open recent error:', err);
+                    alert('Failed to open recent file: ' + err.message);
+                }
+                break;
+            }
             case 'open':
                 const openResult = await ipcRenderer.invoke('open-file-dialog');
                 if (openResult) {
@@ -184,7 +233,7 @@
                         setTimeout(() => {
                             if (editor.minder) {
                                 editor.minder.execCommand('camera', editor.minder.getRoot(), 100);
-                                applyTextCenteringToAllNodes();
+                                if (window.applyNodeTextAlignmentForAll) window.applyNodeTextAlignmentForAll();
                                 refreshNavigator();
                             }
                         }, 200);
@@ -277,91 +326,125 @@
     });
 
     // ---------------------------------------------------------
-    // 3. TEXT CENTERING
+    // 3. TEXT ALIGNMENT (left / center / right)
     // ---------------------------------------------------------
-    var textCenteringEnabled = true;
+    // Uses SVG text-anchor (start / middle / end) with matching X
+    // offsets.  Applied per-node after each render via 'noderender'
+    // event, plus safety re-application on layoutfinish.
+    //
+    // For MULTI-LINE nodes the shorter lines shift visually.
+    // For SINGLE-LINE nodes all three alignments look identical
+    // because the node outline wraps the text tightly.
 
-    $(document).on('keydown', function (e) {
-        if (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c' || e.keyCode === 67)) {
-            e.preventDefault();
-            textCenteringEnabled = !textCenteringEnabled;
-            applyTextCenteringToAllNodes();
-            showCenteringToast(textCenteringEnabled ? 'Text Centering: ON' : 'Text Centering: OFF');
-        }
-    });
-
-    function showCenteringToast(message) {
-        var existingToast = document.getElementById('centering-toast');
-        if (existingToast) existingToast.remove();
-
-        var toast = document.createElement('div');
-        toast.id = 'centering-toast';
-        toast.textContent = message;
-        toast.style.cssText = 'position: fixed; top: 60px; left: 50%; transform: translateX(-50%); ' +
-            'background: rgba(0,0,0,0.8); color: white; padding: 8px 16px; border-radius: 4px; ' +
-            'font-size: 13px; z-index: 10000; transition: opacity 0.3s;';
-        document.body.appendChild(toast);
-
-        setTimeout(function () {
-            toast.style.opacity = '0';
-            setTimeout(function () { toast.remove(); }, 300);
-        }, 1500);
-    }
-
-    function applyTextCenteringToAllNodes() {
-        if (!editor || !editor.minder) return;
+    /**
+     * Safely obtain the kity.Group containing a node's text items.
+     * Returns null when unavailable (e.g. node not yet rendered).
+     */
+    function getTextGroupSafe(node) {
         try {
-            var paper = document.querySelector('.minder-editor svg') || document.querySelector('svg.kity-paper');
-            if (!paper) return;
-
-            var textGroups = paper.querySelectorAll('g[id^="node_text"]');
-            textGroups.forEach(function (textGroup) {
-                var textElements = textGroup.querySelectorAll('text');
-                if (textElements.length > 1) {
-                    centerTextElements(textElements, textCenteringEnabled);
-                }
-            });
-        } catch (e) { }
+            if (node.getTextGroup) return node.getTextGroup();
+        } catch (e) { /* fallthrough */ }
+        try {
+            var r = node.getRenderer && node.getRenderer('TextRenderer');
+            return r && r.getRenderShape ? r.getRenderShape() : null;
+        } catch (e) { return null; }
     }
 
-    function centerTextElements(textElements, shouldCenter) {
-        if (!textElements || textElements.length === 0) return;
-        var maxWidth = 0;
-        textElements.forEach(function (textEl) {
-            try {
-                var bbox = textEl.getBBox();
-                if (bbox.width > maxWidth) maxWidth = bbox.width;
-            } catch (e) { }
-        });
+    /**
+     * Apply text-align to one node.
+     *
+     * Strategy:
+     *   1. Reset every <text> to x=0, text-anchor=start (SVG default).
+     *   2. Measure each line's intrinsic width via getBoundaryBox().
+     *   3. For center → text-anchor=middle, x = maxWidth/2
+     *      For right  → text-anchor=end,    x = maxWidth
+     *
+     * The outline is unaffected because the widest line still spans
+     * 0…maxWidth regardless of anchor mode.
+     */
+    function applyNodeTextAlign(node) {
+        if (!node) return;
 
-        textElements.forEach(function (textEl) {
+        var textGroup = getTextGroupSafe(node);
+        if (!textGroup) return;
+
+        var textItems;
+        try { textItems = textGroup.getItems(); } catch (e) { return; }
+        if (!textItems || !textItems.length) return;
+
+        var i, item;
+
+        // --- Step 1: reset every item to native left-aligned ---
+        for (i = 0; i < textItems.length; i++) {
+            item = textItems[i];
             try {
-                if (shouldCenter) {
-                    textEl.setAttribute('x', maxWidth / 2);
-                    textEl.setAttribute('text-anchor', 'middle');
-                } else {
-                    textEl.setAttribute('x', '0');
-                    textEl.setAttribute('text-anchor', 'start');
+                item.setX(0);
+                if (item.setTextAnchor) item.setTextAnchor('start');
+                else item.node.setAttribute('text-anchor', 'start');
+            } catch (e) { /* skip item */ }
+        }
+
+        var align = node.getData('text-align');
+        // No explicit alignment, or explicit 'left' → native default is fine
+        if (!align || align === 'left') return;
+
+        // --- Step 2: measure natural width of every line ---
+        var widths = [], maxWidth = 0;
+        for (i = 0; i < textItems.length; i++) {
+            var w = 0;
+            try {
+                var bbox = textItems[i].getBoundaryBox();
+                w = (bbox && bbox.width) || 0;
+            } catch (e) { /* leave w = 0 */ }
+            widths.push(w);
+            if (w > maxWidth) maxWidth = w;
+        }
+        if (!maxWidth || !isFinite(maxWidth)) return;
+
+        // --- Step 3: apply SVG text-anchor + matching X offset ---
+        for (i = 0; i < textItems.length; i++) {
+            item = textItems[i];
+            try {
+                if (align === 'center') {
+                    if (item.setTextAnchor) item.setTextAnchor('middle');
+                    else item.node.setAttribute('text-anchor', 'middle');
+                    item.setX(maxWidth / 2);
+                } else if (align === 'right') {
+                    if (item.setTextAnchor) item.setTextAnchor('end');
+                    else item.node.setAttribute('text-anchor', 'end');
+                    item.setX(maxWidth);
                 }
-            } catch (e) { }
-        });
+            } catch (e) { /* skip item */ }
+        }
     }
 
-    function setupTextCenteringHook() {
+    function setupTextAlignHook() {
         if (!editor || !editor.minder) {
-            setTimeout(setupTextCenteringHook, 500);
+            setTimeout(setupTextAlignHook, 500);
             return;
         }
+        var minder = editor.minder;
 
-        let centeringTimeout = null;
-        editor.minder.on('contentchange layoutfinish noderender', function () {
-            if (textCenteringEnabled) {
-                if (centeringTimeout) clearTimeout(centeringTimeout);
-                centeringTimeout = setTimeout(applyTextCenteringToAllNodes, 250);
-            }
+        // Primary hook: fires right after each node's render pipeline
+        minder.on('noderender', function (e) {
+            if (e && e.node) applyNodeTextAlign(e.node);
         });
-        setTimeout(applyTextCenteringToAllNodes, 200);
+
+        // Safety net: re-apply after layout animation finishes
+        minder.on('layoutallfinish', function () {
+            window.applyNodeTextAlignmentForAll();
+        });
     }
+
+    /** Traverse the whole tree and (re-)apply alignment to every node. */
+    window.applyNodeTextAlignmentForAll = function () {
+        if (!editor || !editor.minder) return;
+        try {
+            editor.minder.getRoot().traverse(function (node) {
+                applyNodeTextAlign(node);
+            });
+        } catch (e) { /* ignore */ }
+    };
 
     // ---------------------------------------------------------
     // 4. IMPORTERS (XMind, FreeMind, MindManager)
@@ -612,7 +695,7 @@
         if (editor && editor.minder) {
             // Initialize with one empty session
             createNewSession();
-            setupTextCenteringHook();
+            setupTextAlignHook();
             refreshNavigator();
 
             // Track changes for current session

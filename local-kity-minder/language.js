@@ -2,8 +2,8 @@ var _lang_default = 'en'; // surport English, 简体中文, 繁體中文, 日本
 
 try {
   let language = window.parent.document.getElementById('mindmap_diagram_language');
-  console.log("kityminder language: ", language.value);
   if (language != null) {
+    console.log("kityminder language: ", language.value);
     _lang_default = language.value;
   }
 } catch (e) { }

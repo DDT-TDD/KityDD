@@ -22,7 +22,18 @@ SOFTWARE.
 
 ---
 
-KityMinder Core License (BSD 3-Clause)
+## Third-Party Components
+
+KityDD includes third-party libraries and components under their respective licenses.
+For a comprehensive list and details, see [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+
+Primary licenses used:
+- **MIT License**: AngularJS, Bootstrap, jQuery, CodeMirror, Electron, and others
+- **BSD 3-Clause License**: KityMinder Core, KityMinder Editor, Kity, and related FEX-Team components
+
+---
+
+## KityMinder Core License (BSD 3-Clause)
 
 Copyright (c) 2013, Baidu FEX
 All rights reserved.
