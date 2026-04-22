@@ -45,6 +45,11 @@
     async function switchSession(id) {
         if (id === activeSessionId) return;
 
+        // Commit any active text edit before exporting
+        if (editor && editor.fsm && editor.fsm.state() === 'input') {
+            editor.fsm.jump('normal', 'input-commit');
+        }
+
         // Save current session data before switching
         if (activeSessionId && editor && editor.minder) {
             const currentSession = sessions.find(s => s.id === activeSessionId);

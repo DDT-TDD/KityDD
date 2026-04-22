@@ -1,5 +1,27 @@
 ﻿# Release Notes - KityDD
 
+## v1.1.2 (2026-04-21)
+
+This patch release hardens in-place node editing and tab switching so text edits stay interactive and are preserved across sessions.
+
+### Highlights
+
+#### Reliable Text Editing Entry
+- Re-enabled the hidden text receiver before entering input mode from hotbox edit, toolbar edit, and append-and-edit paths.
+- Fixes the intermittent state where node text appeared selected but ignored keyboard input.
+
+#### Safer Session Switching
+- Commits an active node edit before exporting the current tab during a session switch.
+- Prevents in-progress receiver text from being dropped when moving between tabs.
+
+#### Editing Overlay Visibility
+- Raises the editor stacking context while the inline receiver is active.
+- Keeps the editing surface above the custom tab bar and sidebar when editing nodes near the app chrome.
+
+#### Validation
+- Verified the touched source files are free of editor diagnostics.
+- Produced a Windows portable build with `npm run build:portable`.
+
 ## v1.1.1 (2026-03-03)
 
 This patch release focuses on text alignment reliability, recent files tracking, and overall stability improvements.
@@ -45,7 +67,7 @@ oderender event hooks (synchronized with render pipeline) instead of global poll
 #### Build & Release
 - Version bumped to **1.1.1**.
 - Added portable build script: 
-pm run build:portable.
+npm run build:portable.
 - Updated documentation to reflect removed Ctrl+Shift+C toggle (no longer needed with auto-alignment).
 
 ---

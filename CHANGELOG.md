@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.2] - 2026-04-21
+
+### Changed
+- Updated application version metadata to **1.1.2** in `package.json` and `package-lock.json`.
+- Expanded `.gitignore` to cover Electron Builder working metadata.
+
+### Fixed
+- Restored node text editing after hotbox and toolbar edit entry by re-enabling the receiver before each `fsm.jump(..., 'input-request')` path.
+- Committed active text input before session export on tab switch to prevent losing in-progress edits.
+- Kept the inline text editor above the custom tab bar and sidebar while input mode is active.
+
 ## [1.1.1] - 2026-03-03
 
 ### Added

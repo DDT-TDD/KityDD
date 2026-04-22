@@ -49,6 +49,9 @@
   background: white;
   outline: none;
 }
+.km-editor:has(> .receiver.input) {
+  z-index: 1002;
+}
 div.minder-editor-container {
   position: absolute;
   top: 40px;

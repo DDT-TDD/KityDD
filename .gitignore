@@ -13,6 +13,11 @@ release/
 *.AppImage
 KityDD-win32-x64/
 
+# Electron Builder metadata
+.electron-builder/
+builder-debug.yml
+builder-effective-config.yaml
+
 # IDEs
 .vscode/
 .idea/

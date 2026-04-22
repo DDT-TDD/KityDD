@@ -4,6 +4,14 @@ Professional Mindmap Tool - An Electron implementation of KityMinder with advanc
 
 KityDD is a high-performance mind mapping tool built on the robust KityMinder engine, tailored for desktop use with Electron. It offers a seamless experience for creating, editing, and sharing professional mind maps with support for advanced elements like equations, images, and notes.
 
+## Current Release
+
+**v1.1.2** (2026-04-21)
+
+- Restores reliable node text editing when edit mode is entered from hotbox and toolbar actions.
+- Commits in-progress node text before switching tabs so session changes do not discard active edits.
+- Keeps the inline text editor above the custom tab bar and sidebar while editing.
+
 ## ✨ Features
 
 - **Intuitive Interface**: A clean, foldable sidebar for advanced actions and a quick-access ribbon for core mind mapping functions.

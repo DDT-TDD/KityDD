@@ -960,6 +960,7 @@
                     if (isGecko) {
                         receiver.fixFFCaretDisappeared();
                     }
+                    receiver.enable();
                     fsm.jump("input", "input-request");
                     receiver.selectAll();
                 }
@@ -2911,6 +2912,7 @@
                         var receiver = editor.receiver;
 
                         receiverElement.innerText = minder.queryCommandValue('text');
+                        receiver.enable();
                         fsm.jump('input', 'input-request');
                         receiver.selectAll();
                     }
@@ -3763,6 +3765,7 @@
                         var receiver = editor.receiver;
 
                         receiverElement.innerText = minder.queryCommandValue('text');
+                        receiver.enable();
                         fsm.jump('input', 'input-request');
                         receiver.selectAll();
 
