@@ -16,7 +16,9 @@ var _lang_pack = {
       'structure': 'Organization Chart',
       'filetree': 'Directory Organization Chart',
       'right': 'Logical structure Diagram',
-      'fish-bone': 'Fishbone Diagram'
+      'fish-bone': 'Fishbone Diagram',
+      'left': 'Left Tree',
+      'logical': 'Logical Chart'
     },
     'hotbox': {
       'undo': 'Undo',
@@ -54,7 +56,21 @@ var _lang_pack = {
       'fresh-purple-compat': 'Purple Comp',
       'fresh-pink-compat': 'Pink Comp',
       'tianpan': 'Sky Chart',
-      'tianpan-compact': 'Sky Comp'
+      'tianpan-compact': 'Sky Comp',
+      'dark': 'Dark',
+      'dark-compact': 'Dark Compact',
+      'ocean': 'Ocean',
+      'ocean-compact': 'Ocean Compact',
+      'monochrome': 'Monochrome',
+      'forest': 'Forest',
+      'sunrise': 'Sunrise',
+      'rose': 'Rose',
+      'solarized': 'Solarized',
+      'monochrome-compact': 'Mono Compact',
+      'forest-compact': 'Forest Compact',
+      'sunrise-compact': 'Sunrise Compact',
+      'rose-compact': 'Rose Compact',
+      'solarized-compact': 'Solar Compact'
     },
     'maintopic': 'Main Topic',
     'topic': 'Topic',
@@ -462,7 +478,9 @@ var _lang_pack = {
       'structure': '组织结构图',
       'filetree': '目录组织图',
       'right': '逻辑结构图',
-      'fish-bone': '鱼骨头图'
+      'fish-bone': '鱼骨头图',
+      'left': '左展图',
+      'logical': '逻辑图'
     },
     'hotbox': {
       'undo': '撤销',
@@ -500,7 +518,21 @@ var _lang_pack = {
       'fresh-purple-compat': '紧凑紫',
       'fresh-pink-compat': '紧凑粉',
       'tianpan': '经典天盘',
-      'tianpan-compact': '紧凑天盘'
+      'tianpan-compact': '紧凑天盘',
+      'dark': '暗黑',
+      'dark-compact': '暗黑紧凑',
+      'ocean': '海洋',
+      'ocean-compact': '海洋紧凑',
+      'monochrome': '单色',
+      'forest': '森林',
+      'sunrise': '日出',
+      'rose': '玫瑰',
+      'solarized': '太阳化',
+      'monochrome-compact': '紧凑单色',
+      'forest-compact': '紧凑森林',
+      'sunrise-compact': '紧凑日出',
+      'rose-compact': '紧凑玫瑰',
+      'solarized-compact': '紧凑太阳'
     },
     'maintopic': '中心主题',
     'topic': '分支主题',
@@ -920,7 +952,9 @@ var _lang_pack = {
       "structure": "組織結構圖",
       "filetree": "目錄組織圖",
       "right": "邏輯結構圖",
-      "fish-bone": "魚骨頭圖"
+      "fish-bone": "魚骨頭圖",
+      "left": "左展圖",
+      "logical": "邏輯圖"
     },
     "hotbox": {
       "undo": "撤銷",
@@ -958,7 +992,21 @@ var _lang_pack = {
       "fresh-purple-compat": "緊湊紫",
       "fresh-pink-compat": "緊湊粉",
       "tianpan": "經典天盤",
-      "tianpan-compact": "緊湊天盤"
+      "tianpan-compact": "緊湊天盤",
+      "dark": "暗黑",
+      "dark-compact": "暗黑緊湊",
+      "ocean": "海洋",
+      "ocean-compact": "海洋緊湊",
+      "monochrome": "單色",
+      "forest": "森林",
+      "sunrise": "日出",
+      "rose": "玫瑰",
+      "solarized": "太陽化",
+      "monochrome-compact": "緊湊單色",
+      "forest-compact": "緊湊森林",
+      "sunrise-compact": "緊湊日出",
+      "rose-compact": "緊湊玫瑰",
+      "solarized-compact": "緊湊太陽化"
     },
     "maintopic": "中心主題",
     "topic": "分支主題",
@@ -1371,7 +1419,9 @@ var _lang_pack = {
       "structure": "組織図",
       "filetree": "ディレクトリ組織図",
       "right": "論理構造図",
-      "fish-bone": "特性要因図"
+      "fish-bone": "特性要因図",
+      "left": "左展開図",
+      "logical": "論理図"
     },
     "hotbox": {
       "undo": "取り消す",
@@ -1409,7 +1459,21 @@ var _lang_pack = {
       "fresh-purple-compat": "コンパクトパープル",
       "fresh-pink-compat": "コンパクトパウダー",
       "tianpan": "クラシックディッシュ",
-      "tianpan-compact": "コンパクトディッシュ"
+      "tianpan-compact": "コンパクトディッシュ",
+      "dark": "ダーク",
+      "dark-compact": "ダークコンパクト",
+      "ocean": "オーシャン",
+      "ocean-compact": "オーシャンコンパクト",
+      "monochrome": "モノクロ",
+      "forest": "フォレスト",
+      "sunrise": "日の出",
+      "rose": "ローズ",
+      "solarized": "ソーラライズ",
+      "monochrome-compact": "モノクロ コンパクト",
+      "forest-compact": "フォレスト コンパクト",
+      "sunrise-compact": "日の出 コンパクト",
+      "rose-compact": "ローズ コンパクト",
+      "solarized-compact": "ソーラライズ コンパクト"
     },
     "maintopic": "中心テーマ",
     "topic": "ブランチ トピック",
@@ -1795,7 +1859,9 @@ var _lang_pack = {
       "structure": "Organigramm",
       "filetree": "Verzeichnis-Organigramm",
       "right": "Logisches Strukturdiagramm",
-      "fish-bone": "Fischgrätendiagramm"
+      "fish-bone": "Fischgrätendiagramm",
+      "left": "Links-Baum",
+      "logical": "Logik-Diagramm"
     },
     "hotbox": {
       "undo": "widerrufen",
@@ -1833,7 +1899,21 @@ var _lang_pack = {
       "fresh-purple-compat": "kompaktes lila",
       "fresh-pink-compat": "kompaktes Pulver",
       "tianpan": "Klassisches Gericht",
-      "tianpan-compact": "Kompaktes Gericht"
+      "tianpan-compact": "Kompaktes Gericht",
+      "dark": "Dunkel",
+      "dark-compact": "Dunkel Kompakt",
+      "ocean": "Ozean",
+      "ocean-compact": "Ozean Kompakt",
+      "monochrome": "Monochrom",
+      "forest": "Wald",
+      "sunrise": "Sonnenaufgang",
+      "rose": "Rose",
+      "solarized": "Solarized",
+      "monochrome-compact": "Monochrom Kompakt",
+      "forest-compact": "Wald Kompakt",
+      "sunrise-compact": "Sonnenaufgang Kp",
+      "rose-compact": "Rose Kompakt",
+      "solarized-compact": "Solarized Kompakt"
     },
     "maintopic": "zentrales Thema",
     "topic": "Zweig Thema",
@@ -2219,7 +2299,9 @@ var _lang_pack = {
       'structure': 'Organigrama',
       'filetree': 'Diagrama de organización de directorios',
       'right': 'Diagrama de estructura lógica',
-      'fish-bone': 'Diagrama de espina de pescado'
+      'fish-bone': 'Diagrama de espina de pescado',
+      'left': 'Árbol Izquierdo',
+      'logical': 'Diagrama Lógico'
     },
     'hotbox': {
       'undo': 'Deshacer',
@@ -2257,7 +2339,21 @@ var _lang_pack = {
       'fresh-purple-compat': 'Púrpura compacto',
       'fresh-pink-compat': 'Rosa compacto',
       'tianpan': 'Gráfico de cielo',
-      'tianpan-compact': 'Cielo compacto'
+      'tianpan-compact': 'Cielo compacto',
+      'dark': 'Oscuro',
+      'dark-compact': 'Oscuro Compacto',
+      'ocean': 'Océano',
+      'ocean-compact': 'Océano Compacto',
+      'monochrome': 'Monocromo',
+      'forest': 'Bosque',
+      'sunrise': 'Amanecer',
+      'rose': 'Rosa',
+      'solarized': 'Solarizado',
+      'monochrome-compact': 'Mono Compacto',
+      'forest-compact': 'Bosque Compacto',
+      'sunrise-compact': 'Amanecer Compacto',
+      'rose-compact': 'Rosa Compacto',
+      'solarized-compact': 'Solarizado Compacto'
     },
     'maintopic': 'Tema principal',
     'topic': 'Tema',
@@ -2658,7 +2754,9 @@ var _lang_pack = {
       'structure': 'Organization Chart',
       'filetree': 'Directory Organization Chart',
       'right': 'Logical structure Diagram',
-      'fish-bone': 'Fishbone Diagram'
+      'fish-bone': 'Fishbone Diagram',
+      'left': 'Arbre Gauche',
+      'logical': 'Diagramme Logique'
     },
     'hotbox': {
       'undo': 'Annuler',
@@ -2696,7 +2794,21 @@ var _lang_pack = {
       'fresh-purple-compat': 'Violet compacte',
       'fresh-pink-compat': 'Rose compacte',
       'tianpan': 'Tableau céleste',
-      'tianpan-compact': 'Ciel compacte'
+      'tianpan-compact': 'Ciel compacte',
+      'dark': 'Sombre',
+      'dark-compact': 'Sombre Compact',
+      'ocean': 'Océan',
+      'ocean-compact': 'Océan Compact',
+      'monochrome': 'Monochrome',
+      'forest': 'Forêt',
+      'sunrise': 'Aurore',
+      'rose': 'Rose',
+      'solarized': 'Solarisé',
+      'monochrome-compact': 'Monochrome Compact',
+      'forest-compact': 'Forêt Compact',
+      'sunrise-compact': 'Aurore Compact',
+      'rose-compact': 'Rose Compact',
+      'solarized-compact': 'Solarisé Compact'
     },
     'maintopic': 'Sujet principal',
     'topic': 'Sujet',

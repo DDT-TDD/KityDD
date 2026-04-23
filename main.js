@@ -172,28 +172,7 @@ function createMenu() {
         { label: 'Learn More', click: () => { require('electron').shell.openExternal('https://github.com/fex-team/kityminder-editor'); } },
         {
           label: 'About KityDD', click: () => {
-            const { nativeImage } = require('electron');
-            let iconPath = path.join(__dirname, 'icon.ico');
-            let appIcon = nativeImage.createFromPath(iconPath);
-            if (!appIcon.isEmpty()) appIcon = appIcon.resize({ width: 128, height: 128 });
-
-            dialog.showMessageBox(mainWindow, {
-              type: 'info',
-              title: 'About KityDD',
-              icon: appIcon,
-              message: `KityDD Professional Mindmap IDE v${app.getVersion()}`,
-              detail: 'A professional and robust Mindmapping Tool based on the KityMinder core.\nDesigned for high productivity with an enhanced foldable Action Interface.\n\n' +
-                'License Information:\n' +
-                '• KityDD Application: MIT License\n' +
-                '• KityMinder Core (FEX-Team): BSD-3-Clause License\n\n' +
-                'Developed & Maintained by DDT-TDD:\n' +
-                'https://github.com/DDT-TDD\n\n' +
-                'Useful Keyboard Shortcuts:\n' +
-                '  Ctrl+N : Create New Mindmap\n' +
-                '  Ctrl+O : Open File / Import\n' +
-                '  Ctrl+S : Save or Export Mindmap\n' +
-                '  F2 : Edit Selected Node Text'
-            });
+            mainWindow.webContents.send('show-about');
           }
         }
       ]

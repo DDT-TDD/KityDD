@@ -6,15 +6,19 @@ KityDD is a high-performance mind mapping tool built on the robust KityMinder en
 
 ## Current Release
 
-**v1.1.2** (2026-04-21)
+**v2.0.0** (2026-04-22)
 
-- Restores reliable node text editing when edit mode is entered from hotbox and toolbar actions.
-- Commits in-progress node text before switching tabs so session changes do not discard active edits.
-- Keeps the inline text editor above the custom tab bar and sidebar while editing.
+- Adds **Left Tree** and **Logical Chart** templates to the template picker.
+- Adds **fourteen new colour themes**: Dark, Dark Compact, Ocean, Ocean Compact, Monochrome, Monochrome Compact, Forest, Forest Compact, Sunrise, Sunrise Compact, Rose, Rose Compact, Solarized, and Solarized Compact.
+- PNG export now renders at **2× resolution** for crisp HiDPI output.
+- Stunning redesigned **About dialog** with feature highlights and keyboard shortcuts.
+- i18n display names for all new templates and themes across 7 language packs.
 
 ## ✨ Features
 
 - **Intuitive Interface**: A clean, foldable sidebar for advanced actions and a quick-access ribbon for core mind mapping functions.
+- **Templates**: Multiple layout templates including Kityminder, Sky Chart, Organization Chart, Directory Chart, Logical Structure, Fishbone, **Left Tree**, and **Logical Chart**.
+- **Themes**: 34 colour themes spanning classic, fresh-colour, sky-chart, dark, ocean, monochrome, forest, sunrise, rose, and solarized palettes.
 - **Advanced Insertions**:
   - 📝 **Notes**: Add detailed rich-text notes to any node.
   - 🔗 **Hyperlinks**: Link nodes to external websites or documents.
@@ -22,7 +26,7 @@ KityDD is a high-performance mind mapping tool built on the robust KityMinder en
   - ∑ **Equations**: Render professional LaTeX equations using high-quality SVG output.
 - **Universal Import & Export**:
   - **Import**: Support for `.km`, `.json`, `.xmind`, `.mmap` (MindManager), and `.md` (Markdown).
-  - **Export**: Export your maps as `.km`, `.json`, `.png` (Image), or `.md` (Markdown).
+  - **Export**: Export your maps as `.km`, `.json`, `.png` (2× HiDPI Image), or `.md` (Markdown).
 - **Professional About Dialog**: Built-in attribution, licensing information, and keyboard shortcuts.
 - **Multi-Session Tabs**: Work on multiple mindmaps simultaneously with a tabbed interface.
 - **Search & Replace**: Quickly find and replace text across all nodes (Ctrl+F).
@@ -63,6 +67,15 @@ To build the standalone Windows portable executable:
 npm run build:portable
 ```
 The output will be located in the `dist` directory.
+
+### Validating a Release Audit
+
+To validate the current release surface in one command:
+```bash
+npm run validate:release
+```
+
+This audit checks the source wiring for templates, themes, About dialog, HiDPI PNG export, the release documentation for `v2.0.0`, and that `dist/KityDD 2.0.0.exe` exists and is newer than the audited release files.
 
 ## ⌨️ Keyboard Shortcuts
 

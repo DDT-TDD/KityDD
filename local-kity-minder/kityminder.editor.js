@@ -2216,7 +2216,7 @@
 
 
         $templateCache.put('ui/directive/themeList/themeList.html',
-            "<div class=\"dropdown theme-panel\" dropdown><div class=\"dropdown-toggle theme-item-selected\" dropdown-toggle ng-disabled=\"minder.queryCommandState('theme') === -1\"><a href class=\"theme-item\" ng-style=\"getThemeThumbStyle(minder.queryCommandValue('theme'))\" title=\"{{ minder.queryCommandValue('theme') | lang: 'theme'; }}\">{{ minder.queryCommandValue('theme') | lang: 'theme'; }}</a> <span class=\"caret\"></span></div><ul class=\"dropdown-menu theme-list\"><li ng-repeat=\"key in themeKeyList\" class=\"theme-item-wrap\"><a ng-click=\"minder.execCommand('theme', key);\" class=\"theme-item\" ng-style=\"getThemeThumbStyle(key)\" title=\"{{ key | lang: 'theme'; }}\">{{ key | lang: 'theme'; }}</a></li></ul></div>"
+            "<div class=\"dropdown theme-panel\" dropdown><div class=\"dropdown-toggle theme-item-selected\" dropdown-toggle ng-disabled=\"minder.queryCommandState('theme') === -1\"><a href class=\"theme-item\" ng-style=\"getThemeThumbStyle(minder.queryCommandValue('theme'))\" title=\"{{ minder.queryCommandValue('theme') | lang: 'theme'; }}\">{{ minder.queryCommandValue('theme') | lang: 'theme'; }}</a> <span class=\"caret\"></span></div><ul class=\"dropdown-menu theme-list\"><li ng-repeat=\"row in themeRowList track by $index\" class=\"theme-row\"><a href ng-click=\"minder.execCommand('theme', row.primary);\" class=\"theme-item theme-item-cell\" ng-class=\"{ 'theme-item-active': row.primary == minder.queryCommandValue('theme') }\" ng-style=\"getThemeThumbStyle(row.primary)\" title=\"{{ row.primary | lang: 'theme'; }}\">{{ row.primary | lang: 'theme'; }}</a><a href ng-if=\"row.compact\" ng-click=\"minder.execCommand('theme', row.compact);\" class=\"theme-item theme-item-cell\" ng-class=\"{ 'theme-item-active': row.compact == minder.queryCommandValue('theme') }\" ng-style=\"getThemeThumbStyle(row.compact)\" title=\"{{ row.compact | lang: 'theme'; }}\">{{ row.compact | lang: 'theme'; }}</a><span ng-if=\"!row.compact\" class=\"theme-item-placeholder\"></span></li></ul></div>"
         );
 
 
@@ -4346,6 +4346,70 @@
                         return style;
                     };
 
+                    function getCompactBaseThemeKey(themeKey) {
+                        if (themeKey.slice(-8) === '-compact') {
+                            return themeKey.slice(0, -8);
+                        }
+
+                        if (themeKey.slice(-7) === '-compat') {
+                            return themeKey.slice(0, -7);
+                        }
+
+                        return null;
+                    }
+
+                    function getCompactThemeKey(themeKey, themeLookup) {
+                        var compactThemeKey = themeKey + '-compact';
+                        if (themeLookup[compactThemeKey]) {
+                            return compactThemeKey;
+                        }
+
+                        compactThemeKey = themeKey + '-compat';
+                        if (themeLookup[compactThemeKey]) {
+                            return compactThemeKey;
+                        }
+
+                        return null;
+                    }
+
+                    function buildThemeRows(themeKeys) {
+                        var rows = [];
+                        var themeLookup = {};
+                        var handledThemes = {};
+
+                        angular.forEach(themeKeys, function (themeKey) {
+                            themeLookup[themeKey] = true;
+                        });
+
+                        angular.forEach(themeKeys, function (themeKey) {
+                            var compactBaseThemeKey = getCompactBaseThemeKey(themeKey);
+                            var compactThemeKey;
+
+                            if (compactBaseThemeKey && themeLookup[compactBaseThemeKey]) {
+                                return;
+                            }
+
+                            if (handledThemes[themeKey]) {
+                                return;
+                            }
+
+                            compactThemeKey = compactBaseThemeKey ? null : getCompactThemeKey(themeKey, themeLookup);
+
+                            rows.push({
+                                primary: themeKey,
+                                compact: compactThemeKey
+                            });
+
+                            handledThemes[themeKey] = true;
+
+                            if (compactThemeKey) {
+                                handledThemes[compactThemeKey] = true;
+                            }
+                        });
+
+                        return rows;
+                    }
+
                     // 维护 theme key 列表以保证列表美观（不按字母顺序排序）
                     $scope.themeKeyList = [
                         'classic',
@@ -4367,8 +4431,24 @@
                         'tianpan',
                         'tianpan-compact',
                         'fish',
-                        'wire'
+                        'wire',
+                        'dark',
+                        'dark-compact',
+                        'ocean',
+                        'ocean-compact',
+                        'monochrome',
+                        'monochrome-compact',
+                        'forest',
+                        'forest-compact',
+                        'sunrise',
+                        'sunrise-compact',
+                        'rose',
+                        'rose-compact',
+                        'solarized',
+                        'solarized-compact'
                     ];
+
+                    $scope.themeRowList = buildThemeRows($scope.themeKeyList);
                 }
             }
         });

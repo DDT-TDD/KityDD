@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.0] - 2026-04-22
+
+### Added
+- **Left Tree Template**: New `left` template — a pure left-expanding tree layout (mirror of the default right tree) using arc/bezier connectors.
+- **Logical Chart Template**: New `logical` template — a horizontal logical diagram using right layout with poly connectors.
+- **Dark Theme**: Dark mode colour scheme inspired by Catppuccin Mocha, with complementary `dark-compact` variant.
+- **Ocean Theme**: Deep-blue oceanic colour scheme, with complementary `ocean-compact` variant.
+- **Monochrome Theme**: Clean black-and-white palette for minimal and print-friendly exports.
+- **Forest Theme**: Rich forest-green palette with amber selection highlights — warm and natural.
+- **Sunrise Theme**: Warm amber/orange palette inspired by morning light — energetic and vivid.
+- **Rose Theme**: Modern deep rose/pink palette with cool-blue selection contrast — elegant and bold.
+- **Solarized Theme**: Classic Solarized Light colour scheme — warm cream background with teal/gold accents.
+- **Stunning About Dialog**: Completely redesigned in-app About box as a rich Bootstrap modal with feature highlights, keyboard shortcuts, and licensing details.
+- **High-Resolution PNG Export**: PNG export now renders at 2× device pixel resolution, producing crisp images on HiDPI screens and when zoomed in.
+- **i18n coverage for new templates and themes** across all 7 language packs (English, Simplified Chinese, Traditional Chinese, Japanese, German, Spanish, French).
+- **Release Validation Script**: Added `npm run validate:release` to audit the v2.0.0 source wiring, documentation, and built portable EXE in one command.
+
+### Fixed
+- Linked `style.css` in `index.html` so custom template icon swatches for `left` and `logical` are rendered correctly.
+- Switched renderer to load `kityminder.core.js` (unminified, patched) instead of `kityminder.core.min.js`, ensuring the 2× PNG export fix is actually applied.
+
+### Changed
+- Updated application version metadata to **2.0.0** in `package.json` and `package-lock.json`.
+
 ## [1.1.2] - 2026-04-21
 
 ### Changed

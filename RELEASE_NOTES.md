@@ -1,5 +1,55 @@
 ﻿# Release Notes - KityDD
 
+## v2.0.0 (2026-04-22)
+
+This major release expands KityDD's visual capabilities with two new diagram templates, fourteen new colour themes, a 2× HiDPI PNG export, a completely redesigned stunning About dialog, and two critical regression fixes.
+
+### Highlights
+
+#### New Templates
+- **Left Tree** (`left`): A mirror of the default mind-map layout — all branches expand leftward using arc/bezier connectors. Ideal for right-to-left reading flows.
+- **Logical Chart** (`logical`): A horizontal logical diagram that uses a right-only layout with poly connectors. Clean and structured for process flows and hierarchies.
+
+Both templates appear in the template picker with custom SVG icons.
+
+#### New Colour Themes (14 total)
+- **Dark** / **Dark Compact**: Deep dark-mode palette inspired by Catppuccin Mocha, with muted indigo backgrounds, lavender text, and rose highlights.
+- **Ocean** / **Ocean Compact**: Deep-sea blue colour scheme with cyan accents.
+- **Monochrome**: Crisp black-and-white palette ideal for printing and minimal presentations.
+- **Forest**: Rich forest-green palette with amber selection highlights — warm and natural.
+- **Sunrise**: Warm amber/orange palette inspired by morning light — energetic and vivid.
+- **Rose**: Modern deep rose/pink palette with cool-blue selection contrast — elegant and bold.
+- **Solarized**: Classic Solarized Light colour scheme — warm cream background with teal/gold accents.
+
+All themes appear in the theme dropdown alongside the existing 20 built-in themes.
+
+#### High-Resolution PNG Export
+PNG export now renders the mind map canvas at **2× device resolution**. The output image is twice as wide and tall in pixels, producing crisp, print-ready PNGs on HiDPI screens.
+
+#### Stunning About Dialog
+The About box has been completely redesigned as a rich in-app Bootstrap modal with:
+- Gradient header with app branding and version badge
+- Feature highlights grid
+- Keyboard shortcuts quick-reference table
+- License information and GitHub link
+
+#### Regression Fixes
+- **`style.css` now loaded**: The `<link>` to `style.css` was missing from `index.html`, meaning template icon swatches for `left` and `logical` were invisible. Fixed.
+- **PNG fix now active**: `index.html` was loading `kityminder.core.min.js` (unpatched) instead of `kityminder.core.js` (patched with 2× scale). Switched to load the patched unminified version.
+
+#### Internationalisation
+Display names for all new templates and themes are provided in all seven supported languages: English, Simplified Chinese, Traditional Chinese, Japanese, German, Spanish, and French.
+
+### Implementation Notes
+- Templates/themes registered via live mutation of `getTemplateList()` / `getThemeList()` before Angular bootstrap.
+- `$scope.themeKeyList` in `kityminder.editor.js` extended with 14 new keys (34 total).
+- About IPC: `main.js` sends `show-about` to renderer; `diy.js` receives it and opens the Bootstrap modal `#kityddAboutModal`.
+
+### Validation
+- Added a checked-in `npm run validate:release` command so future release audits run against the same documented source, docs, and EXE checks in one step.
+- Verified touched source files are free of editor diagnostics.
+- Produced a Windows portable build with `npm run build:portable`.
+
 ## v1.1.2 (2026-04-21)
 
 This patch release hardens in-place node editing and tab switching so text edits stay interactive and are preserved across sessions.

@@ -14,9 +14,191 @@
         };
     }
 
+    // ---------------------------------------------------------
+    // 1. CUSTOM TEMPLATES & THEMES
+    // Registered before Angular bootstrap so pickers reflect them immediately.
+    // ---------------------------------------------------------
+    (function () {
+        // Template: left-only tree
+        kityminder.Minder.getTemplateList()['left'] = {
+            getLayout: function (node) { return 'left'; },
+            getConnect: function (node) { return node.getLevel() <= 1 ? 'arc' : 'bezier'; }
+        };
+
+        // Template: logical horizontal diagram (right layout + poly connectors)
+        kityminder.Minder.getTemplateList()['logical'] = {
+            getLayout: function (node) { return 'right'; },
+            getConnect: function (node) { return 'poly'; }
+        };
+
+        var themes = kityminder.Minder.getThemeList();
+
+        themes['dark'] = {
+            'background': '#1e1e2e',
+            'root-color': '#cdd6f4', 'root-background': '#45475a', 'root-stroke': '#585b70',
+            'root-font-size': 24, 'root-padding': [15, 25], 'root-margin': [30, 100],
+            'root-radius': 30, 'root-space': 10, 'root-shadow': 'rgba(0,0,0,0.5)',
+            'main-color': '#cdd6f4', 'main-background': '#313244', 'main-stroke': '#45475a',
+            'main-font-size': 16, 'main-padding': [6, 20], 'main-margin': 20,
+            'main-radius': 10, 'main-space': 5, 'main-shadow': 'rgba(0,0,0,0.4)',
+            'sub-color': '#cdd6f4', 'sub-background': 'transparent', 'sub-stroke': 'none',
+            'sub-font-size': 12, 'sub-padding': [5, 10], 'sub-margin': [15, 20],
+            'sub-tree-margin': 30, 'sub-radius': 5, 'sub-space': 5,
+            'connect-color': '#585b70', 'connect-width': 2, 'main-connect-width': 3, 'connect-radius': 5,
+            'selected-background': '#f38ba8', 'selected-stroke': '#f38ba8', 'selected-color': '#1e1e2e',
+            'marquee-background': 'rgba(203,166,247,0.2)', 'marquee-stroke': '#cba6f7',
+            'drop-hint-color': '#a6e3a1', 'sub-drop-hint-width': 2, 'main-drop-hint-width': 4, 'root-drop-hint-width': 4,
+            'order-hint-area-color': 'rgba(166,227,161,0.4)', 'order-hint-path-color': '#a6e3a1', 'order-hint-path-width': 1,
+            'text-selection-color': 'rgb(137,180,250)', 'line-height': 1.5
+        };
+        themes['dark-compact'] = Object.assign({}, themes['dark'], {
+            'root-padding': [8, 13], 'root-margin': [10, 20],
+            'main-padding': [4, 10], 'main-margin': 8,
+            'sub-padding': [3, 5], 'sub-margin': [4, 8], 'sub-tree-margin': 12
+        });
+        themes['ocean'] = {
+            'background': '#0a1628',
+            'root-color': '#e0f2fe', 'root-background': '#0369a1', 'root-stroke': '#0284c7',
+            'root-font-size': 24, 'root-padding': [15, 25], 'root-margin': [30, 100],
+            'root-radius': 30, 'root-space': 10, 'root-shadow': 'rgba(0,0,0,0.6)',
+            'main-color': '#e0f2fe', 'main-background': '#164e63', 'main-stroke': '#155e75',
+            'main-font-size': 16, 'main-padding': [6, 20], 'main-margin': 20,
+            'main-radius': 10, 'main-space': 5, 'main-shadow': 'rgba(0,0,0,0.4)',
+            'sub-color': '#bae6fd', 'sub-background': 'transparent', 'sub-stroke': 'none',
+            'sub-font-size': 12, 'sub-padding': [5, 10], 'sub-margin': [15, 20],
+            'sub-tree-margin': 30, 'sub-radius': 5, 'sub-space': 5,
+            'connect-color': '#0369a1', 'connect-width': 2, 'main-connect-width': 3, 'connect-radius': 5,
+            'selected-background': '#06b6d4', 'selected-stroke': '#06b6d4', 'selected-color': '#0a1628',
+            'marquee-background': 'rgba(6,182,212,0.15)', 'marquee-stroke': '#06b6d4',
+            'drop-hint-color': '#22d3ee', 'sub-drop-hint-width': 2, 'main-drop-hint-width': 4, 'root-drop-hint-width': 4,
+            'order-hint-area-color': 'rgba(34,211,238,0.3)', 'order-hint-path-color': '#22d3ee', 'order-hint-path-width': 1,
+            'text-selection-color': 'rgb(56,189,248)', 'line-height': 1.5
+        };
+        themes['ocean-compact'] = Object.assign({}, themes['ocean'], {
+            'root-padding': [8, 13], 'root-margin': [10, 20],
+            'main-padding': [4, 10], 'main-margin': 8,
+            'sub-padding': [3, 5], 'sub-margin': [4, 8], 'sub-tree-margin': 12
+        });
+        themes['monochrome'] = {
+            'background': '#ffffff',
+            'root-color': '#ffffff', 'root-background': '#1a1a1a', 'root-stroke': '#1a1a1a',
+            'root-font-size': 24, 'root-padding': [15, 25], 'root-margin': [30, 100],
+            'root-radius': 30, 'root-space': 10, 'root-shadow': 'rgba(0,0,0,0.15)',
+            'main-color': '#1a1a1a', 'main-background': '#e5e5e5', 'main-stroke': '#cccccc',
+            'main-font-size': 16, 'main-padding': [6, 20], 'main-margin': 20,
+            'main-radius': 10, 'main-space': 5, 'main-shadow': 'rgba(0,0,0,0.1)',
+            'sub-color': '#333333', 'sub-background': 'transparent', 'sub-stroke': 'none',
+            'sub-font-size': 12, 'sub-padding': [5, 10], 'sub-margin': [15, 20],
+            'sub-tree-margin': 30, 'sub-radius': 5, 'sub-space': 5,
+            'connect-color': '#999999', 'connect-width': 2, 'main-connect-width': 3, 'connect-radius': 5,
+            'selected-background': '#1a1a1a', 'selected-stroke': '#1a1a1a', 'selected-color': '#ffffff',
+            'marquee-background': 'rgba(0,0,0,0.1)', 'marquee-stroke': '#666666',
+            'drop-hint-color': '#333333', 'sub-drop-hint-width': 2, 'main-drop-hint-width': 4, 'root-drop-hint-width': 4,
+            'order-hint-area-color': 'rgba(0,0,0,0.2)', 'order-hint-path-color': '#333333', 'order-hint-path-width': 1,
+            'text-selection-color': 'rgb(100,100,100)', 'line-height': 1.5
+        };
+        themes['monochrome-compact'] = Object.assign({}, themes['monochrome'], {
+            'root-padding': [8, 13], 'root-margin': [10, 20],
+            'main-padding': [4, 10], 'main-margin': 8,
+            'sub-padding': [3, 5], 'sub-margin': [4, 8], 'sub-tree-margin': 12
+        });
+        themes['forest'] = {
+            'background': '#f0f7ee',
+            'root-color': '#ffffff', 'root-background': '#2d6a2d', 'root-stroke': '#1e4d1e',
+            'root-font-size': 24, 'root-padding': [15, 25], 'root-margin': [30, 100],
+            'root-radius': 30, 'root-space': 10, 'root-shadow': 'rgba(0,80,0,0.3)',
+            'main-color': '#1a3c1a', 'main-background': '#a8d5a2', 'main-stroke': '#6aa96a',
+            'main-font-size': 16, 'main-padding': [6, 20], 'main-margin': 20,
+            'main-radius': 10, 'main-space': 5, 'main-shadow': 'rgba(0,60,0,0.15)',
+            'sub-color': '#2d4a2d', 'sub-background': 'transparent', 'sub-stroke': 'none',
+            'sub-font-size': 12, 'sub-padding': [5, 10], 'sub-margin': [15, 20],
+            'sub-tree-margin': 30, 'sub-radius': 5, 'sub-space': 5,
+            'connect-color': '#4a7c4a', 'connect-width': 2, 'main-connect-width': 3, 'connect-radius': 5,
+            'selected-background': '#f59b0e', 'selected-stroke': '#d97706', 'selected-color': '#ffffff',
+            'marquee-background': 'rgba(106,169,106,0.2)', 'marquee-stroke': '#6aa96a',
+            'drop-hint-color': '#2d6a2d', 'sub-drop-hint-width': 2, 'main-drop-hint-width': 4, 'root-drop-hint-width': 4,
+            'order-hint-area-color': 'rgba(45,106,45,0.3)', 'order-hint-path-color': '#2d6a2d', 'order-hint-path-width': 1,
+            'text-selection-color': 'rgb(74,124,74)', 'line-height': 1.5
+        };
+        themes['forest-compact'] = Object.assign({}, themes['forest'], {
+            'root-padding': [8, 13], 'root-margin': [10, 20],
+            'main-padding': [4, 10], 'main-margin': 8,
+            'sub-padding': [3, 5], 'sub-margin': [4, 8], 'sub-tree-margin': 12
+        });
+        themes['sunrise'] = {
+            'background': '#fffbf0',
+            'root-color': '#ffffff', 'root-background': '#c2440e', 'root-stroke': '#a33a0a',
+            'root-font-size': 24, 'root-padding': [15, 25], 'root-margin': [30, 100],
+            'root-radius': 30, 'root-space': 10, 'root-shadow': 'rgba(160,60,0,0.3)',
+            'main-color': '#7c2d12', 'main-background': '#fed7aa', 'main-stroke': '#fb923c',
+            'main-font-size': 16, 'main-padding': [6, 20], 'main-margin': 20,
+            'main-radius': 10, 'main-space': 5, 'main-shadow': 'rgba(200,80,0,0.15)',
+            'sub-color': '#92400e', 'sub-background': 'transparent', 'sub-stroke': 'none',
+            'sub-font-size': 12, 'sub-padding': [5, 10], 'sub-margin': [15, 20],
+            'sub-tree-margin': 30, 'sub-radius': 5, 'sub-space': 5,
+            'connect-color': '#ea580c', 'connect-width': 2, 'main-connect-width': 3, 'connect-radius': 5,
+            'selected-background': '#7c3aed', 'selected-stroke': '#6d28d9', 'selected-color': '#ffffff',
+            'marquee-background': 'rgba(234,88,12,0.15)', 'marquee-stroke': '#ea580c',
+            'drop-hint-color': '#c2440e', 'sub-drop-hint-width': 2, 'main-drop-hint-width': 4, 'root-drop-hint-width': 4,
+            'order-hint-area-color': 'rgba(194,68,14,0.3)', 'order-hint-path-color': '#c2440e', 'order-hint-path-width': 1,
+            'text-selection-color': 'rgb(234,88,12)', 'line-height': 1.5
+        };
+        themes['sunrise-compact'] = Object.assign({}, themes['sunrise'], {
+            'root-padding': [8, 13], 'root-margin': [10, 20],
+            'main-padding': [4, 10], 'main-margin': 8,
+            'sub-padding': [3, 5], 'sub-margin': [4, 8], 'sub-tree-margin': 12
+        });
+        themes['rose'] = {
+            'background': '#fff0f5',
+            'root-color': '#ffffff', 'root-background': '#be185d', 'root-stroke': '#9d174d',
+            'root-font-size': 24, 'root-padding': [15, 25], 'root-margin': [30, 100],
+            'root-radius': 30, 'root-space': 10, 'root-shadow': 'rgba(190,24,93,0.3)',
+            'main-color': '#831843', 'main-background': '#fbcfe8', 'main-stroke': '#f9a8d4',
+            'main-font-size': 16, 'main-padding': [6, 20], 'main-margin': 20,
+            'main-radius': 10, 'main-space': 5, 'main-shadow': 'rgba(190,24,93,0.15)',
+            'sub-color': '#9d174d', 'sub-background': 'transparent', 'sub-stroke': 'none',
+            'sub-font-size': 12, 'sub-padding': [5, 10], 'sub-margin': [15, 20],
+            'sub-tree-margin': 30, 'sub-radius': 5, 'sub-space': 5,
+            'connect-color': '#ec4899', 'connect-width': 2, 'main-connect-width': 3, 'connect-radius': 5,
+            'selected-background': '#1e40af', 'selected-stroke': '#1d4ed8', 'selected-color': '#ffffff',
+            'marquee-background': 'rgba(236,72,153,0.15)', 'marquee-stroke': '#ec4899',
+            'drop-hint-color': '#be185d', 'sub-drop-hint-width': 2, 'main-drop-hint-width': 4, 'root-drop-hint-width': 4,
+            'order-hint-area-color': 'rgba(190,24,93,0.3)', 'order-hint-path-color': '#be185d', 'order-hint-path-width': 1,
+            'text-selection-color': 'rgb(236,72,153)', 'line-height': 1.5
+        };
+        themes['rose-compact'] = Object.assign({}, themes['rose'], {
+            'root-padding': [8, 13], 'root-margin': [10, 20],
+            'main-padding': [4, 10], 'main-margin': 8,
+            'sub-padding': [3, 5], 'sub-margin': [4, 8], 'sub-tree-margin': 12
+        });
+        themes['solarized'] = {
+            'background': '#fdf6e3',
+            'root-color': '#fdf6e3', 'root-background': '#073642', 'root-stroke': '#002b36',
+            'root-font-size': 24, 'root-padding': [15, 25], 'root-margin': [30, 100],
+            'root-radius': 30, 'root-space': 10, 'root-shadow': 'rgba(0,0,0,0.2)',
+            'main-color': '#002b36', 'main-background': '#eee8d5', 'main-stroke': '#93a1a1',
+            'main-font-size': 16, 'main-padding': [6, 20], 'main-margin': 20,
+            'main-radius': 10, 'main-space': 5, 'main-shadow': 'rgba(0,0,0,0.1)',
+            'sub-color': '#586e75', 'sub-background': 'transparent', 'sub-stroke': 'none',
+            'sub-font-size': 12, 'sub-padding': [5, 10], 'sub-margin': [15, 20],
+            'sub-tree-margin': 30, 'sub-radius': 5, 'sub-space': 5,
+            'connect-color': '#2aa198', 'connect-width': 2, 'main-connect-width': 3, 'connect-radius': 5,
+            'selected-background': '#b58900', 'selected-stroke': '#b58900', 'selected-color': '#fdf6e3',
+            'marquee-background': 'rgba(42,161,152,0.15)', 'marquee-stroke': '#2aa198',
+            'drop-hint-color': '#2aa198', 'sub-drop-hint-width': 2, 'main-drop-hint-width': 4, 'root-drop-hint-width': 4,
+            'order-hint-area-color': 'rgba(42,161,152,0.3)', 'order-hint-path-color': '#2aa198', 'order-hint-path-width': 1,
+            'text-selection-color': 'rgb(42,161,152)', 'line-height': 1.5
+        };
+        themes['solarized-compact'] = Object.assign({}, themes['solarized'], {
+            'root-padding': [8, 13], 'root-margin': [10, 20],
+            'main-padding': [4, 10], 'main-margin': 8,
+            'sub-padding': [3, 5], 'sub-margin': [4, 8], 'sub-tree-margin': 12
+        });
+    })();
+
 
     // ---------------------------------------------------------
-    // 1. SESSION MANAGEMENT
+    // 2. SESSION MANAGEMENT
     // ---------------------------------------------------------
     let sessions = [];
     let activeSessionId = null;
@@ -328,6 +510,10 @@
         } else {
             ipcRenderer.send('confirm-close', false);
         }
+    });
+
+    ipcRenderer.on('show-about', () => {
+        $('#kityddAboutModal').modal('show');
     });
 
     // ---------------------------------------------------------
