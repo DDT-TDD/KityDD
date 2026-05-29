@@ -63,3 +63,122 @@
 .theme-list .theme-item-placeholder {
     visibility: hidden;
 }
+
+/* =========================================================
+   PREMIUM FLOATING CANVAS CONTROLS & ZEN FOCUS MODE
+   ========================================================= */
+
+/* Floating Canvas Controls Bar - Modern Glassmorphism */
+.canvas-controls-bar {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid rgba(209, 213, 219, 0.35);
+    border-radius: 12px;
+    padding: 6px 12px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.12);
+    z-index: 1000;
+    gap: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-app-region: no-drag;
+}
+
+/* Dark mode override */
+body.dark-mode-active .canvas-controls-bar {
+    background: rgba(26, 26, 46, 0.85);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+}
+
+.ctrl-btn {
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none !important;
+    padding: 0;
+}
+
+.ctrl-btn:hover {
+    background: rgba(0, 120, 255, 0.1);
+    transform: translateY(-2px) scale(1.05);
+}
+
+body.dark-mode-active .ctrl-btn:hover {
+    background: rgba(240, 147, 251, 0.15);
+}
+
+.ctrl-divider {
+    width: 1px;
+    height: 18px;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+body.dark-mode-active .ctrl-divider {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Zen Focus Mode Styles */
+body.zen-focus-active #tabBar {
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+body.zen-focus-active kityminder-editor {
+    top: 0 !important;
+}
+
+body.zen-focus-active #customSidebar {
+    right: -240px !important;
+}
+
+body.zen-focus-active .canvas-controls-bar {
+    opacity: 0.25;
+}
+
+body.zen-focus-active .canvas-controls-bar:hover {
+    opacity: 1;
+}
+
+/* Premium Toast Notification */
+.kitydd-toast {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: linear-gradient(135deg, #0f0c29 0%, #302b63 100%);
+    color: #fff;
+    padding: 10px 24px;
+    border-radius: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    pointer-events: none;
+    opacity: 0;
+    z-index: 1002;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.kitydd-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Clever dynamic sliding animation for zoom bar when the Action Menu sidebar is open */
+.custom-sidebar.open ~ .canvas-controls-bar {
+    right: 244px; /* 220px sidebar width + 24px default padding */
+}

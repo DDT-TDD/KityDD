@@ -6,13 +6,20 @@ KityDD is a high-performance mind mapping tool built on the robust KityMinder en
 
 ## Current Release
 
-**v2.0.0** (2026-04-22)
+**v3.0.0** (2026-05-28)
 
-- Adds **Left Tree** and **Logical Chart** templates to the template picker.
-- Adds **fourteen new colour themes**: Dark, Dark Compact, Ocean, Ocean Compact, Monochrome, Monochrome Compact, Forest, Forest Compact, Sunrise, Sunrise Compact, Rose, Rose Compact, Solarized, and Solarized Compact.
-- PNG export now renders at **2× resolution** for crisp HiDPI output.
-- Stunning redesigned **About dialog** with feature highlights and keyboard shortcuts.
-- i18n display names for all new templates and themes across 7 language packs.
+- Adds **Default `.km` Saving**: Standardized native saving/loading to `.km` (KityMinder JSON).
+- Adds **DrawDD Import and Export**: High-fidelity `.drawdd` file support with vertical centering layout to prevent overlaps.
+- Adds **Isolated Nodes**: Free-floating detached nodes with hidden connection lines (`Ctrl+I`).
+- Adds **Dashed Relation Lines**: Draw customized red dashed connection lines with labels and arrowheads (`Ctrl+L`).
+- Adds **Sibling Enclosing Brackets**: Group siblings under violet shaded bounding boxes with a curly bracket and explanation (`Ctrl+B`).
+- Adds **Insert Menu**: Native application menu column with shortcuts for these new elements.
+- Adds **Floating Canvas Zoom Controls**: Bottom-right floating controls bar featuring Zoom In, Zoom Out, Zoom-to-Fit, Zoom 100%, Zen Focus toggle, and outline copying, complete with light/dark adaptive theme styling.
+- Adds **Dynamic Sliding Zoom Bar**: The controls bar automatically shifts left by exactly `244px` when the Action Menu sidebar is open, preventing overlapping of buttons.
+- Adds **Zen Focus Mode**: Focus mode hides the session bar, sidebars, and menus with smooth slide transitions, optimizing layout focus.
+- Adds **Indented Text Outline Exporter**: Compiles tree hierarchies into Markdown-style indented text outline lists copied directly to the clipboard with sleek toasts.
+- Adds **Stable Bootstrapping Poller**: Fallback polling to guarantee 100% startup stability under low system resources.
+- Adds **Taskbar-Aware Sidebar**: Sidebar bounding constrained with `top: 60px; bottom: 24px;` and inner scrollable `overflow-y` to prevent permanent Windows taskbar overlaps.
 
 ## ✨ Features
 
@@ -75,7 +82,7 @@ To validate the current release surface in one command:
 npm run validate:release
 ```
 
-This audit checks the source wiring for templates, themes, About dialog, HiDPI PNG export, the release documentation for `v2.0.0`, and that `dist/KityDD 2.0.0.exe` exists and is newer than the audited release files.
+This audit checks the source wiring for templates, themes, About dialog, HiDPI PNG export, the release documentation for `v3.0.0`, and that `dist/KityDD 3.0.0.exe` exists and is newer than the audited release files.
 
 ## ⌨️ Keyboard Shortcuts
 

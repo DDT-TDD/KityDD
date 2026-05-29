@@ -1,4 +1,35 @@
-﻿# Release Notes - KityDD
+# Release Notes - KityDD
+
+## v3.0.0 (2026-05-28)
+
+This major release introduces extensive new mindmap creation capabilities (isolated nodes, dashed relation lines, sibling grouping brackets), direct compatibility with DrawDD formats (.drawdd), and native support for .km as the default saving format.
+
+### Highlights
+
+#### 1. Default Natively Saved `.km` File Format
+- Standardized file operations to prioritize `.km` (KityMinder JSON structure) as the default save extension.
+- Full bidirectional handling of `.km` and `.json` files in the multi-session tab bar, Open Recent menu, and direct saving pipelines.
+
+#### 2. Import & Export to DrawDD Format
+- **Direct Export**: Transforms hierarchical tree structures into flat AntV X6 graph files (`.drawdd`). Uses a vertical centering layout algorithm to automatically align parent nodes beautifully between their child branches, preventing overlaps.
+- **Direct Import**: Traces parent-child associations back from flat graph cells, automatically resolves the root node based on parent-child frequencies and in-degrees, and re-imports them flawlessly into KityMinder's tree structure.
+- **On-the-fly Format Detection**: Automatically checks standard `.json` and `.km` file loads for a `cells` list, transparently converting DrawDD diagrams.
+
+#### 3. Advanced Mindmap Structures (XMind-inspired)
+- **Isolated Nodes**: Add completely detached, free-floating topics to your mindmap (`Ctrl+I`). Connector lines are hidden (`connect: "none"`), allowing them to be dragged anywhere on the canvas.
+- **Dashed Relation Lines**: Connect any arbitrary nodes with a beautiful custom red dashed line with an arrowhead (`Ctrl+L`). Includes a centered text box for labeling relationships, automatically redrawn in real-time as nodes are moved, zoomed, or panned.
+- **Sibling Enclosing Brackets**: Group sibling nodes together (`Ctrl+B`) under a premium light violet shaded bounding box (`rgba(167, 139, 250, 0.08)`) with a custom smooth curved bracket line (`}`) and a violet bold explanation tag.
+- **Native Insert Menu**: Integrated keyboard shortcuts and menu items directly into the Electron window menu bar under a new "Insert" column.
+
+#### 4. Bounded Modern UI & Floating Canvas Controls
+- **Floating Glassmorphic Canvas Controls**: Added a bottom-right floating controls bar featuring Zoom In, Zoom Out, Zoom-to-Fit, Zoom 100%, Zen Focus toggle, and outline copying, complete with light/dark adaptive theme styling.
+- **Dynamic Sliding Zoom Bar**: The controls bar automatically shifts left by exactly `244px` when the Action Menu sidebar is open, preventing overlapping of buttons.
+- **Zen Focus Mode**: Focus mode hides the session bar, sidebars, and menus with smooth slide transitions, optimizing layout focus.
+- **Indented Text Outline Exporter**: Compiles tree hierarchies into Markdown-style indented text outline lists copied directly to the clipboard with sleek toasts.
+- **Stable Bootstrapping Poller**: Fallback polling to guarantee 100% startup stability under low system resources.
+- **Taskbar-Aware Sidebar**: Sidebar bounding constrained with `top: 60px; bottom: 24px;` and inner scrollable `overflow-y` to prevent permanent Windows taskbar overlaps.
+
+---
 
 ## v2.0.0 (2026-04-22)
 

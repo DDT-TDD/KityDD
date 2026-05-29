@@ -69,15 +69,15 @@ const releaseInputs = [
     path.join('local-kity-minder', 'bower_components', 'kityminder-core', 'dist', 'kityminder.core.js')
 ];
 
-pushCheck(checks, 'package version', version === '2.0.0', version);
-pushCheck(checks, 'README current release', files.readme.includes('**v2.0.0** (2026-04-22)'), 'README current release block');
+pushCheck(checks, 'package version', version === '3.0.0', version);
+pushCheck(checks, 'README current release', files.readme.includes('**v3.0.0** (2026-05-28)'), 'README current release block');
 pushCheck(checks, 'README theme count', files.readme.includes('34 colour themes'), 'README feature summary');
 pushCheck(checks, 'README documents validation command', files.readme.includes('npm run validate:release'), 'README validation section');
-pushCheck(checks, 'CHANGELOG current version', files.changelog.includes('## [2.0.0] - 2026-04-22'), 'CHANGELOG heading');
+pushCheck(checks, 'CHANGELOG current version', files.changelog.includes('## [3.0.0] - 2026-05-28'), 'CHANGELOG heading');
 pushCheck(checks, 'CHANGELOG mentions validation script', files.changelog.includes('`npm run validate:release`'), 'CHANGELOG release notes');
-pushCheck(checks, 'RELEASE_NOTES current version', files.releaseNotes.includes('## v2.0.0 (2026-04-22)'), 'RELEASE_NOTES heading');
+pushCheck(checks, 'RELEASE_NOTES current version', files.releaseNotes.includes('## v3.0.0 (2026-05-28)'), 'RELEASE_NOTES heading');
 pushCheck(checks, 'RELEASE_NOTES mentions validation command', files.releaseNotes.includes('`npm run validate:release`'), 'RELEASE_NOTES validation section');
-pushCheck(checks, 'RELEASE_NOTES template icon description', files.releaseNotes.includes('custom SVG icons'), 'template icon wording');
+pushCheck(checks, 'RELEASE_NOTES template icon description', files.releaseNotes.includes('custom SVG icons') || files.releaseNotes.includes('isolated nodes'), 'template icon or isolated nodes wording');
 pushCheck(checks, 'package scripts include validate:release', files.packageJson.includes('"validate:release": "node scripts/validate-release.js"'), 'package.json scripts');
 pushCheck(checks, 'index loads style.css', files.index.includes('href="style.css"'), 'style.css link');
 pushCheck(checks, 'About modal theme summary', files.index.includes('34 themes including Dark, Ocean, Forest'), 'About modal feature highlight');

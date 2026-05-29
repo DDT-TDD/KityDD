@@ -116,6 +116,7 @@
 		.custom-sidebar {
 			position: absolute;
 			top: 60px;
+			bottom: 24px; /* Bound bottom before Windows taskbar */
 			right: -220px;
 			width: 220px;
 			background: #fff;
@@ -162,6 +163,24 @@
 			flex-direction: column;
 			padding: 15px;
 			gap: 12px;
+			height: 100%;
+			overflow-y: auto; /* Handle vertical overflows dynamically */
+			overflow-x: hidden;
+		}
+
+		/* Premium custom thin scrollbar for sidebar content */
+		.sidebar-content::-webkit-scrollbar {
+			width: 4px;
+		}
+		.sidebar-content::-webkit-scrollbar-track {
+			background: transparent;
+		}
+		.sidebar-content::-webkit-scrollbar-thumb {
+			background: rgba(0, 0, 0, 0.15);
+			border-radius: 2px;
+		}
+		body.dark-mode-active .sidebar-content::-webkit-scrollbar-thumb {
+			background: rgba(255, 255, 255, 0.2);
 		}
 
 		.custom-sidebar .km-btn-item {
@@ -172,7 +191,6 @@
 			box-sizing: border-box;
 		}
 
-		/* Custom Import/Export Buttons aligned with MarkDD UI */
 		.diy-btn {
 			-webkit-app-region: no-drag;
 			margin-left: 5px;
@@ -250,12 +268,18 @@
 					Link</span></a>
 			<a class="km-btn-item diy-btn diy-insert" data-type="note"><span class="km-btn-caption">📝 Insert
 					Note</span></a>
-			<hr style="border: 0; border-top: 1px solid #d2d6de; margin: 10px 15px;">
+			<hr style="border: 0; border-top: 1px solid #d2d6de; margin: 5px 15px;">
+			<a class="km-btn-item diy-btn diy-action" data-action="isolated"><span class="km-btn-caption">🎈 Create Isolated Node</span></a>
+			<a class="km-btn-item diy-btn diy-action" data-action="link-nodes"><span class="km-btn-caption">🔀 Link Selected Nodes</span></a>
+			<a class="km-btn-item diy-btn diy-action" data-action="boundary"><span class="km-btn-caption">🗂️ Group Nodes Bracket</span></a>
+			<hr style="border: 0; border-top: 1px solid #d2d6de; margin: 5px 15px;">
 			<a class="km-btn-item diy-btn" href="https://github.com/DDT-TDD" target="_blank"
 				title="Visit our GitHub"><span class="km-btn-caption">⭐ GitHub</span></a>
 			<div class="file-input-wrapper">
 				<a class="km-btn-item diy-btn"><span class="km-btn-caption">📥 Import Local File</span></a>
 			</div>
+			<a class="km-btn-item diy-btn diy-export" data-type="km"><span class="km-btn-caption">📤 Save KM</span></a>
+			<a class="km-btn-item diy-btn diy-export" data-type="drwdd"><span class="km-btn-caption">🎨 Export DrawDD</span></a>
 			<a class="km-btn-item diy-btn diy-export" data-type="json"><span class="km-btn-caption">📤 Export
 					JSON</span></a>
 			<a class="km-btn-item diy-btn diy-export" data-type="png"><span class="km-btn-caption">🖼️ Export
@@ -362,6 +386,20 @@
 			</div>
 		</div>
 	</div>
+
+	<!-- Premium Floating Canvas Controls -->
+	<div id="kityddCanvasControls" class="canvas-controls-bar">
+		<button id="btnZoomIn" class="ctrl-btn" title="Zoom In">➕</button>
+		<button id="btnZoomOut" class="ctrl-btn" title="Zoom Out">➖</button>
+		<button id="btnZoomFit" class="ctrl-btn" title="Fit Screen">🔍</button>
+		<button id="btnZoomActual" class="ctrl-btn" title="Zoom 100%">1️⃣</button>
+		<div class="ctrl-divider"></div>
+		<button id="btnZenToggle" class="ctrl-btn" title="Toggle Focus Mode">👁️</button>
+		<button id="btnCopyOutline" class="ctrl-btn" title="Copy Text Outline">📋</button>
+	</div>
+
+	<!-- Premium Toast Notification -->
+	<div id="kityddToast" class="kitydd-toast"></div>
 </body>
 
 <!-- CRITICAL ELECTRON/JQUERY ISOLATION FIX -->

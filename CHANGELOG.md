@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.0.0] - 2026-05-28
+
+### Added
+- **Default `.km` Saving**: Changed default save format to `.km` natively (which maps directly to KityMinder JSON). Bidirectional `.km` and `.json` handling now integrated across open, save, and export workflows.
+- **DrawDD Import and Export**: Direct support for importing/exporting to the `.drawdd` file format (AntV X6 graph structure). Included a vertical centering layout algorithm for export to avoid overlapping, and graph-to-tree conversion for imports.
+- **Content-Based DrawDD Detection**: Added automatic identification of DrawDD format diagrams (via the presence of `cells` property) when importing standard `.json` or `.km` files, converting them on-the-fly.
+- **Isolated Nodes**: Free-floating nodes with hidden connector lines (`connect: "none"`), allowing the user to create independent nodes (`Ctrl+I`) and drag them anywhere.
+- **Dashed Relation Lines**: Connect any arbitrary nodes (`Ctrl+L`) with customizable dashed red SVG lines featuring center explanation labels and arrowheads, dynamically redrawn during panning, zooming, or dragging.
+- **Sibling Enclosing Brackets**: Group sibling subtopics (`Ctrl+B`) with custom light violet shaded boundaries, a curly bracket `}`, and a summary explanation tag.
+- **Application Insert Menu**: Added a native Electron "Insert" menu containing actions and keyboard shortcuts for these new mindmap structural elements.
+- **Floating Canvas Zoom Controls**: Dynamic bottom-right floating controls bar featuring Zoom In, Zoom Out, Zoom-to-Fit, Zoom 100%, Zen Focus toggle, and outline copying, complete with light/dark adaptive theme styling.
+- **Dynamic Sliding Zoom Bar**: The controls bar automatically shifts left by exactly `244px` when the Action Menu sidebar is open, preventing overlapping of buttons.
+- **Zen Focus Mode**: Focus mode hides the session bar, sidebars, and menus with smooth slide transitions, optimizing layout focus.
+- **Indented Text Outline Exporter**: Compiles tree hierarchies into Markdown-style indented text outline lists copied directly to the clipboard with sleek toasts.
+- **Stable Bootstrapping Poller**: Fallback polling to guarantee 100% startup stability under low system resources.
+- **Taskbar-Aware Sidebar**: Sidebar bounding constrained with `top: 60px; bottom: 24px;` and inner scrollable `overflow-y` to prevent permanent Windows taskbar overlaps.
+
+### Changed
+- Bumps package version to **3.0.0** in `package.json` and `package-lock.json`.
+
 ## [2.0.0] - 2026-04-22
 
 ### Added

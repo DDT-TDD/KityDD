@@ -137,6 +137,7 @@ function createMenu() {
         { type: 'separator' },
         { label: 'Export PNG', click: () => { mainWindow.webContents.send('menu-command', 'export-png'); } },
         { label: 'Export SVG', click: () => { mainWindow.webContents.send('menu-command', 'export-svg'); } },
+        { label: 'Export DrawDD (.drwdd)', click: () => { mainWindow.webContents.send('menu-command', 'export-drwdd'); } },
         { type: 'separator' },
         { role: 'quit' }
       ]
@@ -151,6 +152,19 @@ function createMenu() {
         { role: 'copy' },
         { role: 'paste' },
         { role: 'selectAll' }
+      ]
+    },
+    {
+      label: 'Insert',
+      submenu: [
+        { label: 'Create Isolated Node', accelerator: 'CmdOrCtrl+I', click: () => { mainWindow.webContents.send('menu-command', 'isolated'); } },
+        { label: 'Link Nodes with Line', accelerator: 'CmdOrCtrl+L', click: () => { mainWindow.webContents.send('menu-command', 'link-nodes'); } },
+        { label: 'Group Nodes with Bracket', accelerator: 'CmdOrCtrl+B', click: () => { mainWindow.webContents.send('menu-command', 'boundary'); } },
+        { type: 'separator' },
+        { label: 'Insert Equation', click: () => { mainWindow.webContents.send('menu-command', 'insert-equation'); } },
+        { label: 'Insert Image', click: () => { mainWindow.webContents.send('menu-command', 'insert-image'); } },
+        { label: 'Insert Hyperlink', click: () => { mainWindow.webContents.send('menu-command', 'insert-hyperlink'); } },
+        { label: 'Insert Note', click: () => { mainWindow.webContents.send('menu-command', 'insert-note'); } }
       ]
     },
     {
@@ -231,7 +245,7 @@ app.on('activate', () => {
 ipcMain.handle('open-file-dialog', async (event, options = {}) => {
   const defaultOptions = {
     filters: [
-      { name: 'Supported Mindmaps', extensions: ['km', 'json', 'xmind', 'mmap', 'md', 'xml', 'mm'] },
+      { name: 'Supported Mindmaps', extensions: ['km', 'json', 'xmind', 'mmap', 'md', 'xml', 'mm', 'drwdd'] },
       { name: 'All Files', extensions: ['*'] }
     ],
     properties: ['openFile']

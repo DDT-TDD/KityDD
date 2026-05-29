@@ -351,9 +351,16 @@
                         await importFreeMindContent(recentResult.content);
                     } else if (rExt === 'md' || rExt === 'markdown') {
                         await editor.minder.importData('markdown', recentResult.content);
+                    } else if (rExt === 'drwdd') {
+                        let drawddData = JSON.parse(recentResult.content);
+                        let minderData = convertDrawDDToKityMinder(drawddData);
+                        await editor.minder.importData('json', JSON.stringify(minderData));
                     } else if (rExt === 'json' || rExt === 'km') {
                         try {
                             let jsonData = JSON.parse(recentResult.content);
+                            if (jsonData.cells || jsonData.pages || jsonData.nodes || jsonData.edges) {
+                                jsonData = convertDrawDDToKityMinder(jsonData);
+                            }
                             let importDataStr = jsonData.root ? JSON.stringify(jsonData) : JSON.stringify({ root: jsonData, template: 'default', theme: 'fresh-green', version: '1.4.50' });
                             await editor.minder.importData('json', importDataStr);
                         } catch (err) {
@@ -398,9 +405,16 @@
                             await importFreeMindContent(openResult.content);
                         } else if (ext === 'md' || ext === 'markdown') {
                             await editor.minder.importData('markdown', openResult.content);
+                        } else if (ext === 'drwdd') {
+                            let drawddData = JSON.parse(openResult.content);
+                            let minderData = convertDrawDDToKityMinder(drawddData);
+                            await editor.minder.importData('json', JSON.stringify(minderData));
                         } else if (ext === 'json' || ext === 'km') {
                             try {
                                 let jsonData = JSON.parse(openResult.content);
+                                if (jsonData.cells || jsonData.pages || jsonData.nodes || jsonData.edges) {
+                                    jsonData = convertDrawDDToKityMinder(jsonData);
+                                }
                                 let importDataStr = jsonData.root ? JSON.stringify(jsonData) : JSON.stringify({ root: jsonData, template: 'default', theme: 'fresh-green', version: '1.4.50' });
                                 await editor.minder.importData('json', importDataStr);
                             } catch (err) {
@@ -433,7 +447,16 @@
                 break;
             case 'save':
                 if (currentSession.filePath) {
-                    const content = await editor.minder.exportData('json');
+                    let saveExt = currentSession.filePath.split('.').pop().toLowerCase();
+                    let content;
+                    if (saveExt === 'drwdd') {
+                        const minderJsonStr = await editor.minder.exportData('json');
+                        const minderJson = JSON.parse(minderJsonStr);
+                        const drawddJson = convertKityMinderToDrawDD(minderJson);
+                        content = JSON.stringify(drawddJson, null, 2);
+                    } else {
+                        content = await editor.minder.exportData('json');
+                    }
                     const savedPath = await ipcRenderer.invoke('save-file-direct', {
                         filePath: currentSession.filePath,
                         data: content
@@ -448,22 +471,39 @@
             // Fall through to save-as if no file path
             case 'save-as':
             case 'export-json':
+            case 'export-km':
+            case 'export-drwdd':
             case 'export-md':
             case 'export-png':
             case 'export-svg':
                 let type = command.replace('export-', '');
-                if (command === 'save' || command === 'save-as') { type = 'json'; }
-                let exportType = type === 'md' ? 'markdown' : type;
+                if (command === 'save' || command === 'save-as') { type = 'km'; }
+                let exportType = type === 'km' || type === 'drwdd' ? 'json' : (type === 'md' ? 'markdown' : type);
 
                 editor.minder.exportData(exportType).then(async function (content) {
+                    let exportContent = content;
+                    if (type === 'drwdd') {
+                        const minderJson = JSON.parse(content);
+                        const drawddJson = convertKityMinderToDrawDD(minderJson);
+                        exportContent = JSON.stringify(drawddJson, null, 2);
+                    }
+
                     const defaultName = currentSession.name.includes('.') ? currentSession.name.split('.')[0] : currentSession.name;
+                    
+                    const saveFilters = type === 'km' ? [
+                        { name: 'Kityminder Mindmap', extensions: ['km'] },
+                        { name: 'JSON File', extensions: ['json'] }
+                    ] : (type === 'drwdd' ? [
+                        { name: 'DrawDD Diagram', extensions: ['drwdd'] }
+                    ] : [{ name: exportType.toUpperCase(), extensions: [type] }]);
+
                     const resultPath = await ipcRenderer.invoke('save-file-dialog', {
-                        data: content,
+                        data: exportContent,
                         isBinary: type === 'png',
-                        options: { defaultPath: defaultName + '.' + type, filters: [{ name: exportType.toUpperCase(), extensions: [type] }] }
+                        options: { defaultPath: defaultName + '.' + type, filters: saveFilters }
                     });
 
-                    if (resultPath && (command === 'save' || command === 'save-as')) {
+                    if (resultPath && (command === 'save' || command === 'save-as' || command === 'export-km' || command === 'export-drwdd')) {
                         currentSession.filePath = resultPath;
                         currentSession.name = resultPath.split(/[\\/]/).pop();
                         currentSession.isModified = false;
@@ -495,6 +535,15 @@
                 window.kityddPrompt("Insert Note", "Enter Note text...", function (text) {
                     editor.minder.execCommand('note', text);
                 });
+                break;
+            case 'isolated':
+                createIsolatedNode();
+                break;
+            case 'link-nodes':
+                addLinkBetweenSelectedNodes();
+                break;
+            case 'boundary':
+                createBoundaryForSelectedNodes();
                 break;
             case 'undo':
             case 'redo':
@@ -880,13 +929,776 @@
     }
 
     // ---------------------------------------------------------
-    // 5. EDITOR INITIALIZATION
+    // 4.5. DRAWDD CONVERTERS & ADVANCED MINDMAP CAPABILITIES
     // ---------------------------------------------------------
-    window.onload = function () {
+
+    function convertKityMinderToDrawDD(minderData) {
+        const cells = [];
+        const root = minderData.root;
+        if (!root) {
+            return {
+                version: "1.0.0",
+                type: "mindmap",
+                nodes: [],
+                edges: []
+            };
+        }
+
+        // Separate root's children into Right and Left sides
+        const rightChildren = [];
+        const leftChildren = [];
+        if (root.children) {
+            root.children.forEach((child, index) => {
+                if (index % 2 === 0) {
+                    rightChildren.push(child);
+                } else {
+                    leftChildren.push(child);
+                }
+            });
+        }
+
+        const siblingSpacing = 60;
+        const gap = 80;
+
+        // Helper to assign side, level, width, and height to all nodes recursively
+        function prepareNode(node, level, side) {
+            node.id = node.data.id || 'node-' + Math.random().toString(36).substr(2, 9);
+            node.level = level;
+            node.side = side;
+            
+            const text = node.data.text || 'Node';
+            node.width = level === 0 ? 160 : Math.max(100, Math.min(300, text.length * 8 + 35));
+            node.height = level === 0 ? 60 : 40;
+
+            if (node.children && node.children.length > 0) {
+                node.children.forEach(child => {
+                    prepareNode(child, level + 1, side);
+                });
+            }
+        }
+
+        // Prepare root
+        prepareNode(root, 0, "root");
+        
+        // Prepare children
+        rightChildren.forEach(child => prepareNode(child, 1, "right"));
+        leftChildren.forEach(child => prepareNode(child, 1, "left"));
+
+        // Helper to recursively compute Y coordinates
+        let currentY = 0;
+        function computeY(node) {
+            if (node.children && node.children.length > 0) {
+                node.children.forEach(child => computeY(child));
+                const firstY = node.children[0].y;
+                const lastY = node.children[node.children.length - 1].y;
+                node.y = (firstY + lastY) / 2;
+            } else {
+                node.y = currentY;
+                currentY += siblingSpacing;
+            }
+        }
+
+        // Layout Right children
+        currentY = 0;
+        rightChildren.forEach(child => computeY(child));
+        let rightCenterOffset = 0;
+        if (rightChildren.length > 0) {
+            const firstY = rightChildren[0].y;
+            const lastY = rightChildren[rightChildren.length - 1].y;
+            rightCenterOffset = (firstY + lastY) / 2;
+        }
+
+        // Layout Left children
+        currentY = 0;
+        leftChildren.forEach(child => computeY(child));
+        let leftCenterOffset = 0;
+        if (leftChildren.length > 0) {
+            const firstY = leftChildren[0].y;
+            const lastY = leftChildren[leftChildren.length - 1].y;
+            leftCenterOffset = (firstY + lastY) / 2;
+        }
+
+        // Shift Y coordinates to center around 0
+        function shiftY(node, offset) {
+            node.y -= offset;
+            if (node.children && node.children.length > 0) {
+                node.children.forEach(child => shiftY(child, offset));
+            }
+        }
+        rightChildren.forEach(child => shiftY(child, rightCenterOffset));
+        leftChildren.forEach(child => shiftY(child, leftCenterOffset));
+
+        root.y = 0;
+
+        // Position root and compile recursively
+        const rootX = 2000;
+        const rootY = 2000;
+
+        root.absX = rootX;
+        root.absY = rootY - root.height / 2;
+
+        function computeAbsXAndCompile(node, parentNode = null) {
+            if (node.level > 0) {
+                if (node.side === "right") {
+                    node.absX = parentNode.absX + parentNode.width + gap;
+                } else {
+                    node.absX = parentNode.absX - gap - node.width;
+                }
+                node.absY = rootY + node.y - node.height / 2;
+            }
+
+            const nodeText = node.data.text || 'Node';
+            const textColor = node.level === 0 ? '#1e3a8a' : '#334155';
+            const fontSize = node.level === 0 ? 14 : 12;
+
+            const drawNode = {
+                id: node.id,
+                shape: 'rect',
+                position: { x: node.absX, y: node.absY },
+                size: { width: node.width, height: node.height },
+                attrs: {
+                    body: {
+                        fill: node.level === 0 ? '#eff6ff' : '#ffffff',
+                        stroke: node.level === 0 ? '#2563eb' : '#cbd5e1',
+                        strokeWidth: 2,
+                        rx: node.level === 0 ? 12 : 6,
+                        ry: node.level === 0 ? 12 : 6,
+                    },
+                    label: {
+                        text: nodeText,
+                        fill: textColor,
+                        fontSize: fontSize,
+                        fontFamily: 'system-ui, sans-serif',
+                        fontWeight: 'normal',
+                        fontStyle: 'normal',
+                        textWrap: {
+                            text: nodeText,
+                            width: -20,
+                            height: -20,
+                            ellipsis: false,
+                            breakWord: true
+                        }
+                    }
+                },
+                visible: true,
+                data: {
+                    text: nodeText,
+                    textColor: textColor,
+                    isMindmap: true,
+                    level: node.level
+                },
+                ports: {
+                    groups: {
+                        left: { position: 'left', attrs: { circle: { r: 5, magnet: true, stroke: '#5F95FF', strokeWidth: 2, fill: '#fff' } } },
+                        right: { position: 'right', attrs: { circle: { r: 5, magnet: true, stroke: '#5F95FF', strokeWidth: 2, fill: '#fff' } } },
+                        top: { position: 'top', attrs: { circle: { r: 5, magnet: true, stroke: '#5F95FF', strokeWidth: 2, fill: '#fff' } } },
+                        bottom: { position: 'bottom', attrs: { circle: { r: 5, magnet: true, stroke: '#5F95FF', strokeWidth: 2, fill: '#fff' } } },
+                    },
+                    items: [
+                        { group: 'left', id: 'left' },
+                        { group: 'right', id: 'right' },
+                        { group: 'top', id: 'top' },
+                        { group: 'bottom', id: 'bottom' },
+                    ],
+                }
+            };
+
+            cells.push(drawNode);
+
+            if (node.children && node.children.length > 0) {
+                node.children.forEach(child => {
+                    computeAbsXAndCompile(child, node);
+
+                    const sourcePort = node.level === 0 ? (child.side === "right" ? "right" : "left") : (node.side === "right" ? "right" : "left");
+                    const targetPort = child.side === "right" ? "left" : "right";
+
+                    cells.push({
+                        id: 'edge-' + node.id + '-' + child.id,
+                        shape: 'edge',
+                        source: { cell: node.id, port: sourcePort },
+                        target: { cell: child.id, port: targetPort },
+                        attrs: {
+                            line: {
+                                stroke: '#64748b',
+                                strokeWidth: 2,
+                                targetMarker: null
+                            }
+                        },
+                        router: { name: 'normal' },
+                        connector: { name: 'smooth' }
+                    });
+                });
+            }
+        }
+
+        computeAbsXAndCompile(root);
+
+        const nodes = cells.filter(cell => cell.shape !== 'edge');
+        const edges = cells.filter(cell => cell.shape === 'edge');
+
+        const pageData = {
+            cells: cells
+        };
+        const pageId = 'page-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        const fileId = 'file-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+
+        return {
+            id: fileId,
+            name: (minderData.root && minderData.root.data && minderData.root.data.text) || "KityDD Mindmap",
+            pages: [
+                {
+                    id: pageId,
+                    name: "Page 1",
+                    data: JSON.stringify(pageData)
+                }
+            ],
+            // flat nodes/edges for legacy tests and backwards compatibility
+            version: "1.0.0",
+            type: "mindmap",
+            nodes: nodes,
+            edges: edges
+        };
+    }
+
+    function convertDrawDDToKityMinder(drawddData) {
+        let cells = [];
+        if (drawddData) {
+            if (Array.isArray(drawddData.pages) && drawddData.pages.length > 0) {
+                const firstPage = drawddData.pages[0];
+                if (firstPage && typeof firstPage.data === 'string') {
+                    try {
+                        const pageData = JSON.parse(firstPage.data);
+                        if (Array.isArray(pageData.cells)) {
+                            cells = pageData.cells;
+                        } else if (Array.isArray(pageData.nodes) || Array.isArray(pageData.edges)) {
+                            cells = [...(pageData.nodes || []), ...(pageData.edges || [])];
+                        }
+                    } catch (e) {
+                        console.error('Failed to parse first page data:', e);
+                    }
+                }
+            } else if (Array.isArray(drawddData.cells)) {
+                cells = drawddData.cells;
+            } else if (Array.isArray(drawddData.nodes) || Array.isArray(drawddData.edges)) {
+                cells = [...(drawddData.nodes || []), ...(drawddData.edges || [])];
+            }
+        }
+
+        cells = cells || [];
+        const nodes = cells.filter(cell => cell.shape !== 'edge' && !cell.source && !cell.target);
+        const edges = cells.filter(cell => cell.shape === 'edge' || (cell.source && cell.target));
+
+        if (nodes.length === 0) {
+            return {
+                root: { data: { id: "root", text: "Central Topic" }, children: [] },
+                template: "default",
+                theme: "fresh-green",
+                version: "1.4.50"
+            };
+        }
+
+        // Build adjacency list
+        const parentToChildren = {};
+        const childToParent = {};
+        nodes.forEach(node => {
+            parentToChildren[node.id] = [];
+        });
+
+        edges.forEach(edge => {
+            const sourceId = typeof edge.source === 'object' ? edge.source.cell : edge.source;
+            const targetId = typeof edge.target === 'object' ? edge.target.cell : edge.target;
+            if (sourceId && targetId && parentToChildren[sourceId]) {
+                parentToChildren[sourceId].push(targetId);
+                childToParent[targetId] = sourceId;
+            }
+        });
+
+        // Find root node(s) - nodes with no parents
+        const roots = nodes.filter(node => !childToParent[node.id]);
+        let rootNode = roots[0];
+
+        if (!rootNode) {
+            let maxChildren = -1;
+            nodes.forEach(node => {
+                const numChildren = parentToChildren[node.id].length;
+                if (numChildren > maxChildren) {
+                    maxChildren = numChildren;
+                    rootNode = node;
+                }
+            });
+        }
+        if (!rootNode) rootNode = nodes[0];
+
+        // Recursive helper to build KityMinder tree with sorted layout-preserving children
+        const visited = new Set();
+        function buildTree(node) {
+            visited.add(node.id);
+            const text = node.data?.text || node.attrs?.label?.text || node.attrs?.text?.text || node.text || node.label || 'Topic';
+            const minderNode = {
+                data: {
+                    id: node.id,
+                    text: text,
+                    created: Date.now()
+                },
+                children: []
+            };
+
+            const childrenIds = parentToChildren[node.id] || [];
+            const childNodes = childrenIds
+                .map(childId => nodes.find(n => n.id === childId))
+                .filter(n => n && !visited.has(n.id));
+
+            if (node.id === rootNode.id) {
+                const rootX = rootNode.position?.x || 0;
+                const rightSide = childNodes.filter(n => (n.position?.x || 0) >= rootX);
+                const leftSide = childNodes.filter(n => (n.position?.x || 0) < rootX);
+
+                // Sort right-side top-to-bottom (Y ascending)
+                rightSide.sort((a, b) => (a.position?.y || 0) - (b.position?.y || 0));
+                // Sort left-side top-to-bottom (Y ascending)
+                leftSide.sort((a, b) => (a.position?.y || 0) - (b.position?.y || 0));
+
+                // Combine right-side (first half) and left-side (second half)
+                const sortedChildren = [...rightSide, ...leftSide];
+                sortedChildren.forEach(child => {
+                    minderNode.children.push(buildTree(child));
+                });
+            } else {
+                // Non-root children sorted by Y ascending
+                childNodes.sort((a, b) => (a.position?.y || 0) - (b.position?.y || 0));
+                childNodes.forEach(child => {
+                    minderNode.children.push(buildTree(child));
+                });
+            }
+
+            return minderNode;
+        }
+
+        const rootTree = buildTree(rootNode);
+
+        // Handle disconnected roots or unvisited nodes
+        roots.forEach(r => {
+            if (r.id !== rootNode.id && !visited.has(r.id)) {
+                rootTree.children.push(buildTree(r));
+            }
+        });
+
+        nodes.forEach(node => {
+            if (!visited.has(node.id)) {
+                rootTree.children.push(buildTree(node));
+            }
+        });
+
+        return {
+            root: rootTree,
+            template: "default",
+            theme: "fresh-green",
+            version: "1.4.50"
+        };
+    }
+
+    let relationGroup = null;
+
+    function renderCustomRelations() {
+        if (!editor || !editor.minder) return;
+        const minder = editor.minder;
+
+        if (!relationGroup) {
+            relationGroup = new kity.Group().setId('kitydd_relations');
+            minder.getConnectContainer().addShape(relationGroup);
+        }
+
+        relationGroup.clear();
+
+        const root = minder.getRoot();
+        if (!root) return;
+
+        let relations = root.getData('relations') || [];
+        if (!Array.isArray(relations)) return;
+
+        relations.forEach((rel) => {
+            const fromNode = minder.getNodeById(rel.from);
+            const toNode = minder.getNodeById(rel.to);
+
+            if (!fromNode || !toNode) return;
+
+            // Check visibility
+            let isVisible = true;
+            let p1 = fromNode.parent;
+            while (p1) {
+                if (p1.isCollapsed()) isVisible = false;
+                p1 = p1.parent;
+            }
+            let p2 = toNode.parent;
+            while (p2) {
+                if (p2.isCollapsed()) isVisible = false;
+                p2 = p2.parent;
+            }
+            if (!isVisible) return;
+
+            const boxA = fromNode.getLayoutBox();
+            const boxB = toNode.getLayoutBox();
+
+            const start = new kity.Point(boxA.cx, boxA.cy);
+            const end = new kity.Point(boxB.cx, boxB.cy);
+
+            const path = new kity.Path();
+            path.setPathData(['M', start.x, start.y, 'L', end.x, end.y]);
+            path.stroke('#ef4444', 1.5);
+            path.node.setAttribute('stroke-dasharray', '5,5');
+            relationGroup.addShape(path);
+
+            // Arrowhead marker
+            const arrow = new kity.Path();
+            const angle = Math.atan2(end.y - start.y, end.x - start.x);
+            const arrowSize = 8;
+            const pLeft = new kity.Point(
+                end.x - arrowSize * Math.cos(angle - Math.PI / 6),
+                end.y - arrowSize * Math.sin(angle - Math.PI / 6)
+            );
+            const pRight = new kity.Point(
+                end.x - arrowSize * Math.cos(angle + Math.PI / 6),
+                end.y - arrowSize * Math.sin(angle + Math.PI / 6)
+            );
+            arrow.setPathData(['M', end.x, end.y, 'L', pLeft.x, pLeft.y, 'L', pRight.x, pRight.y, 'Z']);
+            arrow.fill('#ef4444');
+            relationGroup.addShape(arrow);
+
+            // Explanation label
+            if (rel.text) {
+                const midX = (start.x + end.x) / 2;
+                const midY = (start.y + end.y) / 2;
+
+                const textBg = new kity.Rect();
+                const text = new kity.Text(rel.text);
+                text.fill('#ef4444');
+                text.setSize(10);
+                text.setStyle({
+                    fontFamily: 'Segoe UI, sans-serif',
+                    fontSize: '11px',
+                    fontWeight: 'bold'
+                });
+                text.setAnchor('middle');
+
+                const textWidth = rel.text.length * 7 + 10;
+                textBg.setSize(textWidth, 16);
+                textBg.setPosition(midX - textWidth / 2, midY - 8);
+                textBg.fill('#ffffff');
+                textBg.stroke('#ef4444', 1);
+                textBg.setRadius(3);
+
+                text.setPosition(midX, midY + 4);
+
+                relationGroup.addShape(textBg);
+                relationGroup.addShape(text);
+            }
+        });
+    }
+
+    let boundaryGroup = null;
+
+    function renderCustomBoundaries() {
+        if (!editor || !editor.minder) return;
+        const minder = editor.minder;
+
+        if (!boundaryGroup) {
+            boundaryGroup = new kity.Group().setId('kitydd_boundaries');
+            minder.getConnectContainer().addShape(boundaryGroup);
+        }
+
+        boundaryGroup.clear();
+
+        minder.getRoot().traverse(node => {
+            const boundaries = node.getData('boundaries') || [];
+            if (!Array.isArray(boundaries)) return;
+
+            boundaries.forEach(boundary => {
+                const memberNodes = boundary.nodes.map(id => minder.getNodeById(id)).filter(n => n);
+                if (memberNodes.length === 0) return;
+
+                // Check visibility
+                let isVisible = true;
+                memberNodes.forEach(mn => {
+                    let p = mn.parent;
+                    while (p) {
+                        if (p.isCollapsed()) isVisible = false;
+                        p = p.parent;
+                    }
+                });
+                if (!isVisible) return;
+
+                let minX = Infinity, minY = Infinity;
+                let maxX = -Infinity, maxY = -Infinity;
+
+                memberNodes.forEach(mn => {
+                    const box = mn.getLayoutBox();
+                    if (box.left < minX) minX = box.left;
+                    if (box.top < minY) minY = box.top;
+                    if (box.right > maxX) maxX = box.right;
+                    if (box.bottom > maxY) maxY = box.bottom;
+                });
+
+                const padding = 10;
+                const x = minX - padding;
+                const y = minY - padding;
+                const w = (maxX - minX) + padding * 2;
+                const h = (maxY - minY) + padding * 2;
+
+                const bg = new kity.Rect(w, h, x, y);
+                bg.fill('rgba(167, 139, 250, 0.08)');
+                bg.stroke('rgba(167, 139, 250, 0.5)', 1.5);
+                bg.setRadius(8);
+                bg.node.setAttribute('stroke-dasharray', '4,4');
+                boundaryGroup.addShape(bg);
+
+                const bracketX = x + w;
+                const bracketYStart = y + 5;
+                const bracketYEnd = y + h - 5;
+                const bracketYMid = y + h / 2;
+
+                const bracketPath = new kity.Path();
+                bracketPath.setPathData([
+                    'M', bracketX, bracketYStart,
+                    'Q', bracketX + 10, bracketYStart, bracketX + 10, bracketYStart + 15,
+                    'L', bracketX + 10, bracketYMid - 10,
+                    'Q', bracketX + 10, bracketYMid, bracketX + 20, bracketYMid,
+                    'Q', bracketX + 10, bracketYMid, bracketX + 10, bracketYMid + 10,
+                    'L', bracketX + 10, bracketYEnd - 15,
+                    'Q', bracketX + 10, bracketYEnd, bracketX, bracketYEnd
+                ]);
+                bracketPath.stroke('#a78bfa', 2);
+                boundaryGroup.addShape(bracketPath);
+
+                if (boundary.text) {
+                    const text = new kity.Text(boundary.text);
+                    text.fill('#7c3aed');
+                    text.setSize(11);
+                    text.setStyle({
+                        fontFamily: 'Segoe UI, sans-serif',
+                        fontSize: '12px',
+                        fontWeight: '600'
+                    });
+                    text.setPosition(bracketX + 25, bracketYMid + 4);
+                    boundaryGroup.addShape(text);
+                }
+            });
+        });
+    }
+
+    function createIsolatedNode() {
+        if (!editor || !editor.minder) return;
+        const minder = editor.minder;
+        const root = minder.getRoot();
+
+        const newNode = minder.createNode(null, root);
+        newNode.setData('text', 'Isolated Topic');
+        newNode.setData('connect', 'none');
+        newNode.setData('isIsolated', true);
+        newNode.setData('id', 'isolated-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9));
+        newNode.setData('layout_default_offset', { x: 300, y: 150 });
+
+        minder.refresh();
+        minder.select(newNode, true);
+        minder.fire('contentchange');
+    }
+
+    function addLinkBetweenSelectedNodes() {
+        if (!editor || !editor.minder) return;
+        const minder = editor.minder;
+        const selectedNodes = minder.getSelectedNodes();
+
+        if (selectedNodes.length !== 2) {
+            alert('Please select exactly two nodes to link them.');
+            return;
+        }
+
+        const fromNode = selectedNodes[0];
+        const toNode = selectedNodes[1];
+
+        window.kityddPrompt("Link Nodes", "Enter explanation text (optional)", function (text) {
+            const root = minder.getRoot();
+            const relations = root.getData('relations') || [];
+
+            relations.push({
+                from: fromNode.getData('id') || fromNode.setData('id', 'node-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9)),
+                to: toNode.getData('id') || toNode.setData('id', 'node-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9)),
+                text: text
+            });
+
+            root.setData('relations', relations);
+            minder.fire('contentchange');
+            renderCustomRelations();
+        });
+    }
+
+    function createBoundaryForSelectedNodes() {
+        if (!editor || !editor.minder) return;
+        const minder = editor.minder;
+        const selectedNodes = minder.getSelectedNodes();
+
+        if (selectedNodes.length < 2) {
+            alert('Please select at least two sibling nodes to create a boundary.');
+            return;
+        }
+
+        const parent = selectedNodes[0].parent;
+        const allSiblings = selectedNodes.every(node => node.parent === parent);
+
+        if (!allSiblings) {
+            alert('All selected nodes must have the same parent.');
+            return;
+        }
+
+        window.kityddPrompt("Summary Boundary", "Enter summary explanation text", function (text) {
+            const parentNode = parent;
+            const boundaries = parentNode.getData('boundaries') || [];
+
+            boundaries.push({
+                nodes: selectedNodes.map(node => node.getData('id') || node.setData('id', 'node-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9))),
+                text: text
+            });
+
+            parentNode.setData('boundaries', boundaries);
+            minder.fire('contentchange');
+            renderCustomBoundaries();
+        });
+    }
+
+    function showToast(message) {
+        const $toast = $('#kityddToast');
+        if ($toast.length) {
+            $toast.text(message).addClass('show');
+            setTimeout(() => $toast.removeClass('show'), 2000);
+        }
+    }
+
+    function setupCustomFeaturesHook() {
+        if (!editor || !editor.minder) {
+            setTimeout(setupCustomFeaturesHook, 500);
+            return;
+        }
+        var minder = editor.minder;
+
+        minder.on('layoutallfinish viewchange contentchange', function () {
+            // Hide connection lines of isolated nodes
+            minder.getRoot().traverse(function (node) {
+                if (node.getData('connect') === 'none' || node.getData('isIsolated')) {
+                    if (node.getConnection()) {
+                        node.getConnection().setVisible(false);
+                    }
+                }
+            });
+
+            // Clean up broken relations
+            const root = minder.getRoot();
+            if (root) {
+                let relations = root.getData('relations') || [];
+                const activeRelations = relations.filter(rel => {
+                    return minder.getNodeById(rel.from) && minder.getNodeById(rel.to);
+                });
+                if (activeRelations.length !== relations.length) {
+                    root.setData('relations', activeRelations);
+                }
+
+                root.traverse(node => {
+                    let boundaries = node.getData('boundaries') || [];
+                    const activeBoundaries = boundaries.filter(b => {
+                        return b.nodes.every(id => minder.getNodeById(id));
+                    });
+                    if (activeBoundaries.length !== boundaries.length) {
+                        node.setData('boundaries', activeBoundaries);
+                    }
+                });
+            }
+
+            renderCustomRelations();
+            renderCustomBoundaries();
+        });
+
+        // Register connect type 'none' just in case
+        if (window.kityminder && kityminder.connect) {
+            try {
+                kityminder.connect.register("none", function (node, parent, connection) {
+                    connection.setPathData([]);
+                });
+            } catch (e) {}
+        }
+
+        // ---------------------------------------------------------
+        // ADD NEW COMPETITIVE UI/UX FEATURES
+        // ---------------------------------------------------------
+        // 1. Zoom In
+        $('#btnZoomIn').off('click').on('click', () => {
+            minder.execCommand('zoomIn');
+            showToast("🔍 Zoomed In");
+        });
+
+        // 2. Zoom Out
+        $('#btnZoomOut').off('click').on('click', () => {
+            minder.execCommand('zoomOut');
+            showToast("🔍 Zoomed Out");
+        });
+
+        // 3. Zoom Fit (Camera)
+        $('#btnZoomFit').off('click').on('click', () => {
+            minder.execCommand('camera', minder.getRoot(), 200);
+            showToast("📺 Zoomed to Fit Screen");
+        });
+
+        // 4. Zoom Actual (100%)
+        $('#btnZoomActual').off('click').on('click', () => {
+            minder.execCommand('zoom', 100);
+            showToast("💯 Zoomed to 100%");
+        });
+
+        // 5. Zen Focus Mode Toggle
+        $('#btnZenToggle').off('click').on('click', () => {
+            $('body').toggleClass('zen-focus-active');
+            const isZen = $('body').hasClass('zen-focus-active');
+            showToast(isZen ? "🧘 Zen Focus Mode Enabled" : "👁️ Zen Focus Mode Disabled");
+        });
+
+        // 6. Copy Indented Text Outline
+        function generateIndentedOutline(node, depth = 0) {
+            const indent = "    ".repeat(depth);
+            let text = node.data.text || 'Topic';
+            text = text.replace(/[*_#`~\-]/g, '');
+            let outline = indent + "- " + text + "\n";
+            if (node.children && node.children.length > 0) {
+                node.children.forEach(child => {
+                    outline += generateIndentedOutline(child, depth + 1);
+                });
+            }
+            return outline;
+        }
+
+        $('#btnCopyOutline').off('click').on('click', () => {
+            const root = minder.getRoot();
+            if (!root) {
+                showToast("Empty Mindmap");
+                return;
+            }
+            const outlineText = generateIndentedOutline(root, 0);
+            navigator.clipboard.writeText(outlineText).then(() => {
+                showToast("📋 Outline Copied to Clipboard!");
+            }).catch(err => {
+                console.error("Clipboard copy failed:", err);
+                showToast("Failed to copy outline.");
+            });
+        });
+    }
+
+    // ---------------------------------------------------------
+    // 5. EDITOR INITIALIZATION & STABLE BOOTSTRAPPING
+    // ---------------------------------------------------------
+    function initKityDDEngine() {
+        if (window.kityddEngineInitialized) return;
         if (editor && editor.minder) {
+            window.kityddEngineInitialized = true;
             // Initialize with one empty session
             createNewSession();
             setupTextAlignHook();
+            setupCustomFeaturesHook();
             refreshNavigator();
 
             // Track changes for current session
@@ -898,7 +1710,36 @@
                     ipcRenderer.send('set-modified-status', true);
                 }
             });
+
+            // Set initial theme mode class
+            const initialTheme = editor.minder.getTheme();
+            const isDark = initialTheme.includes('dark') || initialTheme.includes('ocean') || initialTheme.includes('monochrome');
+            $('body').toggleClass('dark-mode-active', isDark);
+
+            editor.minder.on('themechange', function (e) {
+                if (e && e.theme) {
+                    const themeName = e.theme;
+                    const isDark = themeName.includes('dark') || themeName.includes('ocean') || themeName.includes('monochrome');
+                    $('body').toggleClass('dark-mode-active', isDark);
+                }
+            });
         }
+    }
+
+    window.onload = function () {
+        initKityDDEngine();
+        // Fallback polling to guarantee bootstrapping stability
+        let pollCount = 0;
+        const interval = setInterval(() => {
+            if (window.kityddEngineInitialized) {
+                clearInterval(interval);
+            } else if (pollCount++ > 30) {
+                clearInterval(interval);
+                console.error("KityDD bootstrap timeout: editor components failed to mount.");
+            } else {
+                initKityDDEngine();
+            }
+        }, 150);
 
         $(".minder-editor").on('mousewheel DOMMouseScroll', function (event) {
             if (event.ctrlKey == true) {
@@ -931,6 +1772,17 @@
     $('.diy-export').on('click', function () {
         let type = $(this).data('type');
         ipcRenderer.emit('menu-command', null, 'export-' + type);
+    });
+
+    $('.diy-action').on('click', function () {
+        let action = $(this).data('action');
+        if (action === 'isolated') {
+            createIsolatedNode();
+        } else if (action === 'link-nodes') {
+            addLinkBetweenSelectedNodes();
+        } else if (action === 'boundary') {
+            createBoundaryForSelectedNodes();
+        }
     });
 
     $('.file-input-wrapper .diy-btn').on('click', function () {
