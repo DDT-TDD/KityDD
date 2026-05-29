@@ -1,8 +1,36 @@
 # Release Notes - KityDD
 
+## v3.0.1 (2026-05-29)
+
+This release introduces major enhancements to relation lines and branch connections, adding support for freestyle draggable Bezier curves, custom style/color menus, per-branch custom connection styles with real-time layout reflows, two new vertical tree templates, and a horizontal orthogonal logical chart icon in the template picker.
+
+### Highlights
+
+#### 1. Draggable Freestyle Bezier Relation Curves & Movable Labels
+- Replaced standard straight relation lines with smooth quadratic Bezier curves.
+- Fully interactive circular control point handles and explanation labels that can be dragged organically.
+- Integrated automatic viewport zoom calibration so dragging vectors is pixel-perfect at all zoom levels.
+- Added exact tangent angle rotation math for arrowheads so they always point flush along the curve's endpoint bend.
+
+#### 2. Relation Styles & Colors Customization Dialog
+- Extended the custom prompt modal (`Ctrl+L` or sidebar action) when creating or editing links.
+- Let users select custom line styles (**Dashed**, **Solid**, or **Dotted**) and custom colors (**Red**, **Blue**, **Green**, **Purple**, **Orange**, or **Gray**).
+- Support for editing or deleting existing relation connections in a single click with pre-populated form values.
+
+#### 3. Customizable Branch Connection Styles
+- Added a Connection Line Style selector to the sidebar actions panel.
+- Allows users to customize the link rendering style of any branch individually (**Smooth Curve (Bezier)**, **Right-Angle (Orthogonal)**, **Curved Arc**, **Straight Line**, or **No Connection Line**).
+- Configured connection style updates to trigger instant animated mindmap reflows (`minder.layout(200)`), fully respecting compact themes without overlaps.
+
+#### 4. New Templates & Horizontal Logical Picker Icon
+- Registered `top-tree` (Upward Tree) and `bottom-tree` (Downward Tree) layouts with full multi-lingual translations.
+- Swapped the vertical file-tree icon of the Logical Chart template with a correct horizontal orthogonal diagram SVG swatch.
+
+---
+
 ## v3.0.0 (2026-05-28)
 
-This major release introduces extensive new mindmap creation capabilities (isolated nodes, dashed relation lines, sibling grouping brackets), direct compatibility with DrawDD formats (.drawdd), and native support for .km as the default saving format.
+This major release introduces extensive new mindmap creation capabilities (isolated nodes, branch layout inheritance, customizable brackets, dashed relation lines), direct compatibility with DrawDD formats (.drawdd), and native support for .km as the default saving format.
 
 ### Highlights
 
@@ -16,7 +44,11 @@ This major release introduces extensive new mindmap creation capabilities (isola
 - **On-the-fly Format Detection**: Automatically checks standard `.json` and `.km` file loads for a `cells` list, transparently converting DrawDD diagrams.
 
 #### 3. Advanced Mindmap Structures (XMind-inspired)
-- **Isolated Nodes**: Add completely detached, free-floating topics to your mindmap (`Ctrl+I`). Connector lines are hidden (`connect: "none"`), allowing them to be dragged anywhere on the canvas.
+- **Isolated Nodes**: Add completely detached, free-floating topics to your mindmap (`Ctrl+I`). Connector lines are hidden (`connect: "none"`), allowing them to be dragged anywhere on the canvas. Stagger positions are automatically computed to prevent overlap.
+- **Flicker-Free Connection Lines**: Instantly intercepts core KityMinder templates to return `'none'` connection lines for isolated nodes, eliminating any visual rendering line flashing on all cycles.
+- **Detach and Reattach Actions**: Interactive sidebar action buttons to detach any branch node into a free-floating isolated topic, or reattach an isolated node back into a normal layout-managed topic.
+- **Node Layout Directions**: XMind-style branch layout inheritance. Lets the user configure the layout direction (`right`, `left`, `bottom`, `top`, or `inherit`) of any individual node via a new sidebar dropdown, dynamically reflowing all descendants.
+- **Customizable Group Bracket Positions**: Let users choose `right`, `left`, `top`, or `bottom` custom curly brackets when creating sibling summaries, and edit or delete them dynamically via the enhanced prompt modal.
 - **Dashed Relation Lines**: Connect any arbitrary nodes with a beautiful custom red dashed line with an arrowhead (`Ctrl+L`). Includes a centered text box for labeling relationships, automatically redrawn in real-time as nodes are moved, zoomed, or panned.
 - **Sibling Enclosing Brackets**: Group sibling nodes together (`Ctrl+B`) under a premium light violet shaded bounding box (`rgba(167, 139, 250, 0.08)`) with a custom smooth curved bracket line (`}`) and a violet bold explanation tag.
 - **Native Insert Menu**: Integrated keyboard shortcuts and menu items directly into the Electron window menu bar under a new "Insert" column.

@@ -18,7 +18,9 @@ var _lang_pack = {
       'right': 'Logical structure Diagram',
       'fish-bone': 'Fishbone Diagram',
       'left': 'Left Tree',
-      'logical': 'Logical Chart'
+      'logical': 'Logical Chart',
+      'bottom-tree': 'Downward Tree',
+      'top-tree': 'Upward Tree'
     },
     'hotbox': {
       'undo': 'Undo',
@@ -480,7 +482,9 @@ var _lang_pack = {
       'right': '逻辑结构图',
       'fish-bone': '鱼骨头图',
       'left': '左展图',
-      'logical': '逻辑图'
+      'logical': '逻辑图',
+      'bottom-tree': '下向树',
+      'top-tree': '上向树'
     },
     'hotbox': {
       'undo': '撤销',
@@ -954,7 +958,9 @@ var _lang_pack = {
       "right": "邏輯結構圖",
       "fish-bone": "魚骨頭圖",
       "left": "左展圖",
-      "logical": "邏輯圖"
+      "logical": "邏輯圖",
+      "bottom-tree": "下向樹",
+      "top-tree": "上向樹"
     },
     "hotbox": {
       "undo": "撤銷",
@@ -1421,7 +1427,9 @@ var _lang_pack = {
       "right": "論理構造図",
       "fish-bone": "特性要因図",
       "left": "左展開図",
-      "logical": "論理図"
+      "logical": "論理図",
+      "bottom-tree": "下向きツリー",
+      "top-tree": "上向きツリー"
     },
     "hotbox": {
       "undo": "取り消す",
@@ -1861,7 +1869,9 @@ var _lang_pack = {
       "right": "Logisches Strukturdiagramm",
       "fish-bone": "Fischgrätendiagramm",
       "left": "Links-Baum",
-      "logical": "Logik-Diagramm"
+      "logical": "Logik-Diagramm",
+      "bottom-tree": "Abwärts-Baum",
+      "top-tree": "Aufwärts-Baum"
     },
     "hotbox": {
       "undo": "widerrufen",
@@ -2301,7 +2311,9 @@ var _lang_pack = {
       'right': 'Diagrama de estructura lógica',
       'fish-bone': 'Diagrama de espina de pescado',
       'left': 'Árbol Izquierdo',
-      'logical': 'Diagrama Lógico'
+      'logical': 'Diagrama Lógico',
+      'bottom-tree': 'Árbol Hacia Abajo',
+      'top-tree': 'Árbol Hacia Arriba'
     },
     'hotbox': {
       'undo': 'Deshacer',
@@ -2754,9 +2766,11 @@ var _lang_pack = {
       'structure': 'Organization Chart',
       'filetree': 'Directory Organization Chart',
       'right': 'Logical structure Diagram',
-      'fish-bone': 'Fishbone Diagram',
+      'fish-bone': 'Diagrambone Diagram',
       'left': 'Arbre Gauche',
-      'logical': 'Diagramme Logique'
+      'logical': 'Diagramme Logique',
+      'bottom-tree': 'Arbre Descendant',
+      'top-tree': 'Arbre Ascendant'
     },
     'hotbox': {
       'undo': 'Annuler',

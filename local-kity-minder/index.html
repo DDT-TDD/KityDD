@@ -272,6 +272,28 @@
 			<a class="km-btn-item diy-btn diy-action" data-action="isolated"><span class="km-btn-caption">🎈 Create Isolated Node</span></a>
 			<a class="km-btn-item diy-btn diy-action" data-action="link-nodes"><span class="km-btn-caption">🔀 Link Selected Nodes</span></a>
 			<a class="km-btn-item diy-btn diy-action" data-action="boundary"><span class="km-btn-caption">🗂️ Group Nodes Bracket</span></a>
+			<a class="km-btn-item diy-btn" id="btnDetachNode" style="display: none;"><span class="km-btn-caption">🎈 Detach Node (Isolate)</span></a>
+			<a class="km-btn-item diy-btn" id="btnReattachNode" style="display: none;"><span class="km-btn-caption">🔗 Reattach Node (Connect)</span></a>
+			<hr style="border: 0; border-top: 1px solid #d2d6de; margin: 5px 15px;">
+			<div style="padding: 0 15px; margin-bottom: 10px;" id="diyNodeLayoutGroup">
+				<label style="font-size: 11px; font-weight: 600; color: #4b5563; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px;">Node Layout Direction</label>
+				<select class="form-control" id="diyNodeLayoutSelect" style="border-radius: 6px; font-size: 13px; height: 32px; background-color: #ffffff; border: 1px solid #d1d5db; color: #374151; margin-bottom: 10px;">
+					<option value="">Default (Inherited)</option>
+					<option value="right">Right (Horizontal)</option>
+					<option value="left">Left (Horizontal)</option>
+					<option value="bottom">Downwards (Vertical)</option>
+					<option value="top">Upwards (Vertical)</option>
+				</select>
+				<label style="font-size: 11px; font-weight: 600; color: #4b5563; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px;">Connection Line Style</label>
+				<select class="form-control" id="diyNodeConnectSelect" style="border-radius: 6px; font-size: 13px; height: 32px; background-color: #ffffff; border: 1px solid #d1d5db; color: #374151;">
+					<option value="">Default (Inherited)</option>
+					<option value="bezier">Smooth Curve (Bezier)</option>
+					<option value="poly">Right-Angle (Orthogonal)</option>
+					<option value="arc">Curved Arc</option>
+					<option value="line">Straight Line</option>
+					<option value="none">No Connection Line</option>
+				</select>
+			</div>
 			<hr style="border: 0; border-top: 1px solid #d2d6de; margin: 5px 15px;">
 			<a class="km-btn-item diy-btn" href="https://github.com/DDT-TDD" target="_blank"
 				title="Visit our GitHub"><span class="km-btn-caption">⭐ GitHub</span></a>
@@ -301,7 +323,7 @@
 						<div>
 							<div style="font-size:28px; font-weight:800; color:#ffffff; letter-spacing:-0.5px; font-family:'Segoe UI',sans-serif;">KityDD</div>
 							<div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
-								<span style="background:linear-gradient(90deg,#f093fb,#f5576c); color:#fff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:20px; letter-spacing:1px;">v2.0.0</span>
+								<span style="background:linear-gradient(90deg,#f093fb,#f5576c); color:#fff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:20px; letter-spacing:1px;">v3.0.1</span>
 								<span style="color:#a78bfa; font-size:13px; font-weight:500;">Professional Mindmap IDE</span>
 							</div>
 						</div>
@@ -378,8 +400,37 @@
 						<textarea class="form-control" id="kityddPromptInput" rows="3"
 							style="resize: vertical;"></textarea>
 					</div>
+					<div class="form-group" id="kityddPromptSideGroup" style="display: none; margin-top: 15px;">
+						<label for="kityddPromptSideSelect" style="font-weight: 600; color: #4b5563; margin-bottom: 5px;">Bracket Position</label>
+						<select class="form-control" id="kityddPromptSideSelect" style="border-radius: 6px;">
+							<option value="right">Right</option>
+							<option value="left">Left</option>
+							<option value="top">Top</option>
+							<option value="bottom">Bottom</option>
+						</select>
+					</div>
+					<div class="form-group" id="kityddPromptRelStyleGroup" style="display: none; margin-top: 15px;">
+						<label for="kityddPromptRelStyle" style="font-weight: 600; color: #4b5563; margin-bottom: 5px;">Relation Line Style</label>
+						<select class="form-control" id="kityddPromptRelStyle" style="border-radius: 6px;">
+							<option value="dashed">Dashed</option>
+							<option value="solid">Solid</option>
+							<option value="dotted">Dotted</option>
+						</select>
+					</div>
+					<div class="form-group" id="kityddPromptRelColorGroup" style="display: none; margin-top: 15px;">
+						<label for="kityddPromptRelColor" style="font-weight: 600; color: #4b5563; margin-bottom: 5px;">Relation Line Color</label>
+						<select class="form-control" id="kityddPromptRelColor" style="border-radius: 6px;">
+							<option value="#ef4444">Red</option>
+							<option value="#3b82f6">Blue</option>
+							<option value="#10b981">Green</option>
+							<option value="#8b5cf6">Purple</option>
+							<option value="#f59e0b">Orange</option>
+							<option value="#4b5563">Gray</option>
+						</select>
+					</div>
 				</div>
 				<div class="modal-footer">
+					<button type="button" class="btn btn-danger" id="kityddPromptDelete" style="display: none; float: left; border-radius: 6px; font-weight: 600;">Delete</button>
 					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
 					<button type="button" class="btn btn-primary" id="kityddPromptConfirm">Confirm</button>
 				</div>

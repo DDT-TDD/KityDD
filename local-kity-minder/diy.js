@@ -31,6 +31,68 @@
             getConnect: function (node) { return 'poly'; }
         };
 
+        kityminder.Minder.getTemplateList()['bottom-tree'] = {
+            getLayout: function (node) { return 'bottom'; },
+            getConnect: function (node) { return 'bezier'; }
+        };
+
+        kityminder.Minder.getTemplateList()['top-tree'] = {
+            getLayout: function (node) { return 'top'; },
+            getConnect: function (node) { return 'bezier'; }
+        };
+
+        function applyNodeLayoutInterceptor() {
+            const templateList = kityminder.Minder.getTemplateList();
+            for (let name in templateList) {
+                let template = templateList[name];
+                if (template && template.getLayout) {
+                    let originalGetLayout = template.getLayout;
+                    template.getLayout = function (node) {
+                        let p = node;
+                        while (p) {
+                            let customLayout = p.getData('layout');
+                            if (customLayout) {
+                                return customLayout;
+                            }
+                            p = p.parent;
+                        }
+                        return originalGetLayout.call(this, node);
+                    };
+                }
+            }
+        }
+
+        function applyNodeConnectInterceptor() {
+            const templateList = kityminder.Minder.getTemplateList();
+            for (let name in templateList) {
+                let template = templateList[name];
+                if (template && template.getConnect) {
+                    let originalGetConnect = template.getConnect;
+                    template.getConnect = function (node) {
+                        if (node.getData('isIsolated')) {
+                            return 'none';
+                        }
+                        // Traverse up to inherit custom connect style from parent/ancestors
+                        let p = node;
+                        while (p) {
+                            let customConnect = p.getData('connect');
+                            if (customConnect !== undefined && customConnect !== null) {
+                                // Sibling children should not inherit 'none' connection style from an isolated parent
+                                if (p === node || customConnect !== 'none') {
+                                    return customConnect;
+                                }
+                            }
+                            p = p.parent;
+                        }
+                        return originalGetConnect.call(this, node);
+                    };
+                }
+            }
+        }
+
+        applyNodeLayoutInterceptor();
+        applyNodeConnectInterceptor();
+
         var themes = kityminder.Minder.getThemeList();
 
         themes['dark'] = {
@@ -300,14 +362,43 @@
     // ---------------------------------------------------------
     // 2. ELECTRON NATIVE MENU HOOKS
     // ---------------------------------------------------------
-    window.kityddPrompt = function (title, placeholder, callback) {
+    window.kityddPrompt = function (title, placeholder, callback, showSideSelect, defaultSide, showDelete, deleteCallback, showRelOptions, defaultStyle, defaultColor, defaultValue) {
         $('#kityddPromptLabel').text(title);
-        $('#kityddPromptInput').attr('placeholder', placeholder).val('');
+        $('#kityddPromptInput').attr('placeholder', placeholder).val(defaultValue !== undefined && defaultValue !== null ? defaultValue : '');
+
+        if (showSideSelect) {
+            $('#kityddPromptSideGroup').show();
+            $('#kityddPromptSideSelect').val(defaultSide || 'right');
+        } else {
+            $('#kityddPromptSideGroup').hide();
+        }
+
+        if (showRelOptions) {
+            $('#kityddPromptRelStyleGroup').show();
+            $('#kityddPromptRelStyle').val(defaultStyle || 'dashed');
+            $('#kityddPromptRelColorGroup').show();
+            $('#kityddPromptRelColor').val(defaultColor || '#ef4444');
+        } else {
+            $('#kityddPromptRelStyleGroup').hide();
+            $('#kityddPromptRelColorGroup').hide();
+        }
+
+        if (showDelete) {
+            $('#kityddPromptDelete').show().off('click').on('click', function () {
+                $('#kityddPromptModal').modal('hide');
+                if (deleteCallback) deleteCallback();
+            });
+        } else {
+            $('#kityddPromptDelete').hide();
+        }
 
         $('#kityddPromptConfirm').off('click').on('click', function () {
             let val = $('#kityddPromptInput').val();
+            let side = $('#kityddPromptSideSelect').val();
+            let relStyle = $('#kityddPromptRelStyle').val();
+            let relColor = $('#kityddPromptRelColor').val();
             $('#kityddPromptModal').modal('hide');
-            if (val && callback) callback(val);
+            if (callback) callback(val, side, relStyle, relColor);
         });
 
         $('#kityddPromptInput').off('keydown').on('keydown', function (e) {
@@ -1303,6 +1394,12 @@
         if (!editor || !editor.minder) return;
         const minder = editor.minder;
 
+        let relationGroup = null;
+        minder.getConnectContainer().getShapes().forEach(shape => {
+            if (shape.getId && shape.getId() === 'kitydd_relations') {
+                relationGroup = shape;
+            }
+        });
         if (!relationGroup) {
             relationGroup = new kity.Group().setId('kitydd_relations');
             minder.getConnectContainer().addShape(relationGroup);
@@ -1342,15 +1439,28 @@
             const start = new kity.Point(boxA.cx, boxA.cy);
             const end = new kity.Point(boxB.cx, boxB.cy);
 
+            const strokeColor = rel.color || '#ef4444';
+            const lineStyle = rel.style || 'dashed';
+
+            // Quadratic Bezier Calculation: M start Q cp end
+            const mid = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
+            const cp = { x: mid.x + (rel.cp ? rel.cp.x : 0), y: mid.y + (rel.cp ? rel.cp.y : 0) };
+
             const path = new kity.Path();
-            path.setPathData(['M', start.x, start.y, 'L', end.x, end.y]);
-            path.stroke('#ef4444', 1.5);
-            path.node.setAttribute('stroke-dasharray', '5,5');
+            path.setPathData(['M', start.x, start.y, 'Q', cp.x, cp.y, end.x, end.y]);
+            path.stroke(strokeColor, 1.5);
+            if (lineStyle === 'dashed') {
+                path.node.setAttribute('stroke-dasharray', '5,5');
+            } else if (lineStyle === 'dotted') {
+                path.node.setAttribute('stroke-dasharray', '2,3');
+            } else {
+                path.node.removeAttribute('stroke-dasharray');
+            }
             relationGroup.addShape(path);
 
-            // Arrowhead marker
+            // Arrowhead marker - Tangent direction at t=1 is from cp to end
             const arrow = new kity.Path();
-            const angle = Math.atan2(end.y - start.y, end.x - start.x);
+            const angle = Math.atan2(end.y - cp.y, end.x - cp.x);
             const arrowSize = 8;
             const pLeft = new kity.Point(
                 end.x - arrowSize * Math.cos(angle - Math.PI / 6),
@@ -1361,36 +1471,129 @@
                 end.y - arrowSize * Math.sin(angle + Math.PI / 6)
             );
             arrow.setPathData(['M', end.x, end.y, 'L', pLeft.x, pLeft.y, 'L', pRight.x, pRight.y, 'Z']);
-            arrow.fill('#ef4444');
+            arrow.fill(strokeColor);
             relationGroup.addShape(arrow);
+
+            // Compute midpoint of Bezier curve at t=0.5: B(0.5) = 0.25*start + 0.5*cp + 0.25*end
+            const curveMidX = 0.25 * start.x + 0.5 * cp.x + 0.25 * end.x;
+            const curveMidY = 0.25 * start.y + 0.5 * cp.y + 0.25 * end.y;
+
+            const labelX = curveMidX + (rel.labelOffset ? rel.labelOffset.x : 0);
+            const labelY = curveMidY + (rel.labelOffset ? rel.labelOffset.y : 0);
+
+            const isSelected = minder.getSelectedNodes().some(n => n.getData('id') === rel.from || n.getData('id') === rel.to);
+
+            // Draw interactive helper handles if selected
+            if (isSelected) {
+                // Projection line from mid to cp
+                const projLine = new kity.Path();
+                projLine.setPathData(['M', mid.x, mid.y, 'L', cp.x, cp.y]);
+                projLine.stroke(strokeColor, 1);
+                projLine.node.setAttribute('stroke-dasharray', '2,2');
+                projLine.node.setAttribute('opacity', '0.5');
+                relationGroup.addShape(projLine);
+
+                // Control point drag handle
+                const cpHandle = new kity.Circle(6, cp.x, cp.y);
+                cpHandle.fill('#ffffff');
+                cpHandle.stroke(strokeColor, 2);
+                cpHandle.node.style.cursor = 'move';
+                relationGroup.addShape(cpHandle);
+
+                cpHandle.node.addEventListener('mousedown', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    let startX = e.clientX;
+                    let startY = e.clientY;
+                    let initCpX = rel.cp ? rel.cp.x : 0;
+                    let initCpY = rel.cp ? rel.cp.y : 0;
+                    const zoom = minder.getPaper().getViewPort().zoom || 1;
+
+                    function onMouseMove(moveEvent) {
+                        const dx = (moveEvent.clientX - startX) / zoom;
+                        const dy = (moveEvent.clientY - startY) / zoom;
+                        rel.cp = {
+                            x: initCpX + dx,
+                            y: initCpY + dy
+                        };
+                        renderCustomRelations();
+                    }
+
+                    function onMouseUp() {
+                        window.removeEventListener('mousemove', onMouseMove);
+                        window.removeEventListener('mouseup', onMouseUp);
+                        minder.fire('contentchange');
+                    }
+
+                    window.addEventListener('mousemove', onMouseMove);
+                    window.addEventListener('mouseup', onMouseUp);
+                });
+            }
 
             // Explanation label
             if (rel.text) {
-                const midX = (start.x + end.x) / 2;
-                const midY = (start.y + end.y) / 2;
-
                 const textBg = new kity.Rect();
                 const text = new kity.Text(rel.text);
-                text.fill('#ef4444');
+                text.fill(strokeColor);
                 text.setSize(10);
                 text.setStyle({
                     fontFamily: 'Segoe UI, sans-serif',
                     fontSize: '11px',
                     fontWeight: 'bold'
                 });
-                text.setAnchor('middle');
+                if (text.setTextAnchor) text.setTextAnchor('middle');
+                else text.node.setAttribute('text-anchor', 'middle');
 
                 const textWidth = rel.text.length * 7 + 10;
-                textBg.setSize(textWidth, 16);
-                textBg.setPosition(midX - textWidth / 2, midY - 8);
+                textBg.setSize(textWidth, 18);
+                textBg.setPosition(labelX - textWidth / 2, labelY - 9);
                 textBg.fill('#ffffff');
-                textBg.stroke('#ef4444', 1);
+                textBg.stroke(strokeColor, 1);
                 textBg.setRadius(3);
 
-                text.setPosition(midX, midY + 4);
+                text.setPosition(labelX, labelY + 4);
 
                 relationGroup.addShape(textBg);
                 relationGroup.addShape(text);
+
+                if (isSelected) {
+                    textBg.node.style.cursor = 'move';
+                    text.node.style.cursor = 'move';
+
+                    const dragHandler = function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        let startX = e.clientX;
+                        let startY = e.clientY;
+                        let initLabelX = rel.labelOffset ? rel.labelOffset.x : 0;
+                        let initLabelY = rel.labelOffset ? rel.labelOffset.y : 0;
+                        const zoom = minder.getPaper().getViewPort().zoom || 1;
+
+                        function onMouseMove(moveEvent) {
+                            const dx = (moveEvent.clientX - startX) / zoom;
+                            const dy = (moveEvent.clientY - startY) / zoom;
+                            rel.labelOffset = {
+                                x: initLabelX + dx,
+                                y: initLabelY + dy
+                            };
+                            renderCustomRelations();
+                        }
+
+                        function onMouseUp() {
+                            window.removeEventListener('mousemove', onMouseMove);
+                            window.removeEventListener('mouseup', onMouseUp);
+                            minder.fire('contentchange');
+                        }
+
+                        window.addEventListener('mousemove', onMouseMove);
+                        window.addEventListener('mouseup', onMouseUp);
+                    };
+
+                    textBg.node.addEventListener('mousedown', dragHandler);
+                    text.node.addEventListener('mousedown', dragHandler);
+                }
             }
         });
     }
@@ -1401,12 +1604,29 @@
         if (!editor || !editor.minder) return;
         const minder = editor.minder;
 
+        let boundaryGroup = null;
+        minder.getConnectContainer().getShapes().forEach(shape => {
+            if (shape.getId && shape.getId() === 'kitydd_boundaries') {
+                boundaryGroup = shape;
+            }
+        });
         if (!boundaryGroup) {
             boundaryGroup = new kity.Group().setId('kitydd_boundaries');
             minder.getConnectContainer().addShape(boundaryGroup);
         }
 
         boundaryGroup.clear();
+
+        function hexToRgba(hex, alpha) {
+            hex = hex.replace('#', '');
+            if (hex.length === 3) {
+                hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+            }
+            let r = parseInt(hex.substring(0, 2), 16);
+            let g = parseInt(hex.substring(2, 4), 16);
+            let b = parseInt(hex.substring(4, 6), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
 
         minder.getRoot().traverse(node => {
             const boundaries = node.getData('boundaries') || [];
@@ -1438,47 +1658,114 @@
                     if (box.bottom > maxY) maxY = box.bottom;
                 });
 
+                const side = boundary.side || 'right';
                 const padding = 10;
                 const x = minX - padding;
                 const y = minY - padding;
                 const w = (maxX - minX) + padding * 2;
                 const h = (maxY - minY) + padding * 2;
 
+                const baseColor = boundary.color || '#a78bfa';
+
                 const bg = new kity.Rect(w, h, x, y);
-                bg.fill('rgba(167, 139, 250, 0.08)');
-                bg.stroke('rgba(167, 139, 250, 0.5)', 1.5);
+                bg.fill(hexToRgba(baseColor, 0.08));
+                bg.stroke(hexToRgba(baseColor, 0.4), 1.5);
                 bg.setRadius(8);
                 bg.node.setAttribute('stroke-dasharray', '4,4');
                 boundaryGroup.addShape(bg);
 
-                const bracketX = x + w;
-                const bracketYStart = y + 5;
-                const bracketYEnd = y + h - 5;
-                const bracketYMid = y + h / 2;
-
                 const bracketPath = new kity.Path();
-                bracketPath.setPathData([
-                    'M', bracketX, bracketYStart,
-                    'Q', bracketX + 10, bracketYStart, bracketX + 10, bracketYStart + 15,
-                    'L', bracketX + 10, bracketYMid - 10,
-                    'Q', bracketX + 10, bracketYMid, bracketX + 20, bracketYMid,
-                    'Q', bracketX + 10, bracketYMid, bracketX + 10, bracketYMid + 10,
-                    'L', bracketX + 10, bracketYEnd - 15,
-                    'Q', bracketX + 10, bracketYEnd, bracketX, bracketYEnd
-                ]);
-                bracketPath.stroke('#a78bfa', 2);
+                let textX = 0, textY = 0;
+                let textAnchor = 'start';
+
+                if (side === 'right') {
+                    const bracketX = x + w;
+                    const bracketYStart = y + 5;
+                    const bracketYEnd = y + h - 5;
+                    const bracketYMid = y + h / 2;
+
+                    bracketPath.setPathData([
+                        'M', bracketX, bracketYStart,
+                        'Q', bracketX + 10, bracketYStart, bracketX + 10, bracketYStart + 15,
+                        'L', bracketX + 10, bracketYMid - 10,
+                        'Q', bracketX + 10, bracketYMid, bracketX + 20, bracketYMid,
+                        'Q', bracketX + 10, bracketYMid, bracketX + 10, bracketYMid + 10,
+                        'L', bracketX + 10, bracketYEnd - 15,
+                        'Q', bracketX + 10, bracketYEnd, bracketX, bracketYEnd
+                    ]);
+                    textX = bracketX + 25;
+                    textY = bracketYMid + 4;
+                    textAnchor = 'start';
+                } else if (side === 'left') {
+                    const bracketX = x;
+                    const bracketYStart = y + 5;
+                    const bracketYEnd = y + h - 5;
+                    const bracketYMid = y + h / 2;
+
+                    bracketPath.setPathData([
+                        'M', bracketX, bracketYStart,
+                        'Q', bracketX - 10, bracketYStart, bracketX - 10, bracketYStart + 15,
+                        'L', bracketX - 10, bracketYMid - 10,
+                        'Q', bracketX - 10, bracketYMid, bracketX - 20, bracketYMid,
+                        'Q', bracketX - 10, bracketYMid, bracketX - 10, bracketYMid + 10,
+                        'L', bracketX - 10, bracketYEnd - 15,
+                        'Q', bracketX - 10, bracketYEnd, bracketX, bracketYEnd
+                    ]);
+                    textX = bracketX - 25;
+                    textY = bracketYMid + 4;
+                    textAnchor = 'end';
+                } else if (side === 'top') {
+                    const bracketY = y;
+                    const bracketXStart = x + 5;
+                    const bracketXEnd = x + w - 5;
+                    const bracketXMid = x + w / 2;
+
+                    bracketPath.setPathData([
+                        'M', bracketXStart, bracketY,
+                        'Q', bracketXStart, bracketY - 10, bracketXStart + 15, bracketY - 10,
+                        'L', bracketXMid - 10, bracketY - 10,
+                        'Q', bracketXMid, bracketY - 10, bracketXMid, bracketY - 20,
+                        'Q', bracketXMid, bracketY - 10, bracketXMid + 10, bracketY - 10,
+                        'L', bracketXEnd - 15, bracketY - 10,
+                        'Q', bracketXEnd, bracketY - 10, bracketXEnd, bracketY
+                    ]);
+                    textX = bracketXMid;
+                    textY = bracketY - 25;
+                    textAnchor = 'middle';
+                } else if (side === 'bottom') {
+                    const bracketY = y + h;
+                    const bracketXStart = x + 5;
+                    const bracketXEnd = x + w - 5;
+                    const bracketXMid = x + w / 2;
+
+                    bracketPath.setPathData([
+                        'M', bracketXStart, bracketY,
+                        'Q', bracketXStart, bracketY + 10, bracketXStart + 15, bracketY + 10,
+                        'L', bracketXMid - 10, bracketY + 10,
+                        'Q', bracketXMid, bracketY + 10, bracketXMid, bracketY + 20,
+                        'Q', bracketXMid, bracketY + 10, bracketXMid + 10, bracketY + 10,
+                        'L', bracketXEnd - 15, bracketY + 10,
+                        'Q', bracketXEnd, bracketY + 10, bracketXEnd, bracketY
+                    ]);
+                    textX = bracketXMid;
+                    textY = bracketY + 30;
+                    textAnchor = 'middle';
+                }
+
+                bracketPath.stroke(baseColor, 2);
                 boundaryGroup.addShape(bracketPath);
 
                 if (boundary.text) {
                     const text = new kity.Text(boundary.text);
-                    text.fill('#7c3aed');
+                    text.fill(baseColor);
                     text.setSize(11);
                     text.setStyle({
                         fontFamily: 'Segoe UI, sans-serif',
                         fontSize: '12px',
                         fontWeight: '600'
                     });
-                    text.setPosition(bracketX + 25, bracketYMid + 4);
+                    text.setPosition(textX, textY);
+                    text.node.setAttribute('text-anchor', textAnchor);
                     boundaryGroup.addShape(text);
                 }
             });
@@ -1515,20 +1802,70 @@
         const fromNode = selectedNodes[0];
         const toNode = selectedNodes[1];
 
-        window.kityddPrompt("Link Nodes", "Enter explanation text (optional)", function (text) {
-            const root = minder.getRoot();
-            const relations = root.getData('relations') || [];
+        const fromId = fromNode.getData('id') || fromNode.setData('id', 'node-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9));
+        const toId = toNode.getData('id') || toNode.setData('id', 'node-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9));
 
-            relations.push({
-                from: fromNode.getData('id') || fromNode.setData('id', 'node-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9)),
-                to: toNode.getData('id') || toNode.setData('id', 'node-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9)),
-                text: text
-            });
+        const root = minder.getRoot();
+        const relations = root.getData('relations') || [];
 
-            root.setData('relations', relations);
-            minder.fire('contentchange');
-            renderCustomRelations();
-        });
+        let existingIndex = relations.findIndex(r => (r.from === fromId && r.to === toId) || (r.from === toId && r.to === fromId));
+        let existingRel = existingIndex !== -1 ? relations[existingIndex] : null;
+
+        if (existingRel) {
+            // Edit existing
+            $('#kityddPromptInput').val(existingRel.text || '');
+            window.kityddPrompt(
+                "Edit Node Link",
+                "Enter explanation text (optional)",
+                function (text, side, style, color) {
+                    existingRel.text = text;
+                    existingRel.style = style;
+                    existingRel.color = color;
+                    root.setData('relations', relations);
+                    minder.fire('contentchange');
+                    renderCustomRelations();
+                },
+                false,
+                null,
+                true,
+                function () {
+                    // Delete callback
+                    relations.splice(existingIndex, 1);
+                    root.setData('relations', relations);
+                    minder.fire('contentchange');
+                    renderCustomRelations();
+                },
+                true,
+                existingRel.style || 'dashed',
+                existingRel.color || '#ef4444',
+                existingRel.text || ''
+            );
+        } else {
+            // Create new
+            window.kityddPrompt(
+                "Link Nodes",
+                "Enter explanation text (optional)",
+                function (text, side, style, color) {
+                    relations.push({
+                        from: fromId,
+                        to: toId,
+                        text: text,
+                        style: style,
+                        color: color
+                    });
+                    root.setData('relations', relations);
+                    minder.fire('contentchange');
+                    renderCustomRelations();
+                },
+                false,
+                null,
+                false,
+                null,
+                true,
+                'dashed',
+                '#ef4444'
+            );
+        }
     }
 
     function createBoundaryForSelectedNodes() {
@@ -1549,19 +1886,72 @@
             return;
         }
 
-        window.kityddPrompt("Summary Boundary", "Enter summary explanation text", function (text) {
-            const parentNode = parent;
-            const boundaries = parentNode.getData('boundaries') || [];
+        const parentNode = parent;
+        const boundaries = parentNode.getData('boundaries') || [];
 
-            boundaries.push({
-                nodes: selectedNodes.map(node => node.getData('id') || node.setData('id', 'node-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9))),
-                text: text
-            });
-
-            parentNode.setData('boundaries', boundaries);
-            minder.fire('contentchange');
-            renderCustomBoundaries();
+        // Check if there is an existing boundary containing exactly these nodes
+        const selectedIds = selectedNodes.map(node => node.getData('id') || node.setData('id', 'node-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9)));
+        const existingIdx = boundaries.findIndex(b => {
+            if (b.nodes.length !== selectedIds.length) return false;
+            const bSet = new Set(b.nodes);
+            return selectedIds.every(id => bSet.has(id));
         });
+
+        if (existingIdx !== -1) {
+            const existingBoundary = boundaries[existingIdx];
+            $('#kityddPromptInput').val(existingBoundary.text || '');
+            window.kityddPrompt(
+                "Edit Summary Boundary",
+                "Enter summary explanation text",
+                function (text, side, style, color) {
+                    existingBoundary.text = text;
+                    existingBoundary.side = side;
+                    existingBoundary.color = color;
+                    parentNode.setData('boundaries', boundaries);
+                    minder.fire('contentchange');
+                    renderCustomBoundaries();
+                },
+                true,
+                existingBoundary.side || 'right',
+                true,
+                function () {
+                    // Delete boundary
+                    boundaries.splice(existingIdx, 1);
+                    parentNode.setData('boundaries', boundaries);
+                    minder.fire('contentchange');
+                    renderCustomBoundaries();
+                    showToast("Boundary removed.");
+                },
+                true,
+                'solid',
+                existingBoundary.color || '#a78bfa',
+                existingBoundary.text || ''
+            );
+        } else {
+            window.kityddPrompt(
+                "Summary Boundary",
+                "Enter summary explanation text",
+                function (text, side, style, color) {
+                    boundaries.push({
+                        nodes: selectedIds,
+                        text: text,
+                        side: side || 'right',
+                        color: color || '#a78bfa'
+                    });
+
+                    parentNode.setData('boundaries', boundaries);
+                    minder.fire('contentchange');
+                    renderCustomBoundaries();
+                },
+                true,
+                'right',
+                false,
+                null,
+                true,
+                'solid',
+                '#a78bfa'
+            );
+        }
     }
 
     function showToast(message) {
@@ -1572,6 +1962,76 @@
         }
     }
 
+    function detachSelectedNode() {
+        if (!editor || !editor.minder) return;
+        const minder = editor.minder;
+        const selectedNodes = minder.getSelectedNodes();
+        if (selectedNodes.length !== 1) {
+            alert('Please select exactly one node to detach.');
+            return;
+        }
+
+        const node = selectedNodes[0];
+        if (node.isRoot()) {
+            alert('Cannot detach the central root node.');
+            return;
+        }
+
+        if (node.getData('isIsolated')) {
+            alert('Node is already isolated.');
+            return;
+        }
+
+        const root = minder.getRoot();
+        const currentParent = node.parent;
+
+        if (currentParent !== root) {
+            minder.moveNode(node, root);
+        }
+
+        // Stagger to prevent overlapping
+        let maxOffsetIndex = 0;
+        root.children.forEach(child => {
+            if (child.getData('isIsolated')) {
+                maxOffsetIndex++;
+            }
+        });
+        const offsetX = 300;
+        const offsetY = 100 + (maxOffsetIndex * 80);
+
+        node.setData('connect', 'none');
+        node.setData('isIsolated', true);
+        node.setData('layout_default_offset', { x: offsetX, y: offsetY });
+
+        minder.refresh();
+        minder.fire('contentchange');
+        showToast('Node detached into an isolated topic.');
+    }
+
+    function reattachSelectedNode() {
+        if (!editor || !editor.minder) return;
+        const minder = editor.minder;
+        const selectedNodes = minder.getSelectedNodes();
+        if (selectedNodes.length !== 1) {
+            alert('Please select exactly one node to reattach.');
+            return;
+        }
+
+        const node = selectedNodes[0];
+        if (!node.getData('isIsolated')) {
+            alert('Node is not isolated.');
+            return;
+        }
+
+        node.setData('connect', null);
+        node.setData('isIsolated', null);
+        node.setData('layout_default_offset', null);
+
+        minder.refresh();
+        minder.fire('contentchange');
+        showToast('Node reattached to the main tree.');
+    }
+
     function setupCustomFeaturesHook() {
         if (!editor || !editor.minder) {
             setTimeout(setupCustomFeaturesHook, 500);
@@ -1579,13 +2039,48 @@
         }
         var minder = editor.minder;
 
-        minder.on('layoutallfinish viewchange contentchange', function () {
-            // Hide connection lines of isolated nodes
-            minder.getRoot().traverse(function (node) {
-                if (node.getData('connect') === 'none' || node.getData('isIsolated')) {
-                    if (node.getConnection()) {
-                        node.getConnection().setVisible(false);
+        // Implement the missing getNodeById method on the minder instance
+        if (!minder.getNodeById) {
+            minder.getNodeById = function (id) {
+                var found = null;
+                minder.getRoot().traverse(function (node) {
+                    if (node.getData('id') === id) {
+                        found = node;
                     }
+                });
+                return found;
+            };
+        }
+
+        // Intercept updateConnect to hide connection lines for isolated nodes and "No Connection" nodes flicker-free
+        const originalUpdateConnect = minder.updateConnect;
+        minder.updateConnect = function (node) {
+            originalUpdateConnect.apply(this, arguments);
+            const connection = node._connection;
+            if (connection) {
+                const connectStyle = node.getConnect();
+                if (connectStyle === 'none' || node.getData('isIsolated')) {
+                    connection.setVisible(false);
+                }
+            }
+        };
+
+        // Intercept the template command to clear the root node's custom layout and connect style
+        minder.on('beforeExecCommand', function (e) {
+            if (e.commandName === 'template') {
+                const root = minder.getRoot();
+                if (root) {
+                    root.setData('layout', null);
+                    root.setData('connect', null);
+                }
+            }
+        });
+
+        minder.on('layoutallfinish viewchange contentchange', function () {
+            // Ensure all nodes in the tree have a unique ID in their data (essential for stable relations and boundaries)
+            minder.getRoot().traverse(function (node) {
+                if (!node.getData('id')) {
+                    node.setData('id', 'node-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9));
                 }
             });
 
@@ -1615,11 +2110,15 @@
             renderCustomBoundaries();
         });
 
-        // Register connect type 'none' just in case
-        if (window.kityminder && kityminder.connect) {
+        // Register connect type 'none' and 'line' just in case
+        var connectProvider = kityminder.Connect || kityminder.connect;
+        if (window.kityminder && connectProvider) {
             try {
-                kityminder.connect.register("none", function (node, parent, connection) {
+                connectProvider.register("none", function (node, parent, connection) {
                     connection.setPathData([]);
+                });
+                connectProvider.register("line", function (node, parent, connection) {
+                    connection.setPathData(["M", parent.getLayoutVertexOut(), "L", node.getLayoutVertexIn()]);
                 });
             } catch (e) {}
         }
@@ -1685,6 +2184,78 @@
                 console.error("Clipboard copy failed:", err);
                 showToast("Failed to copy outline.");
             });
+        });
+
+        // 7. Node Layout Select change wiring
+        $('#diyNodeLayoutSelect').off('change').on('change', function () {
+            const selectedNodes = minder.getSelectedNodes();
+            if (selectedNodes.length === 0) return;
+
+            const layoutVal = $(this).val() || null;
+            selectedNodes.forEach(node => {
+                node.setData('layout', layoutVal);
+            });
+
+            minder.refresh();
+            minder.layout(200);
+            minder.fire('contentchange');
+            showToast("Branch layout updated.");
+        });
+
+        // 7.5 Connection Line Style Select change wiring
+        $('#diyNodeConnectSelect').off('change').on('change', function () {
+            const selectedNodes = minder.getSelectedNodes();
+            if (selectedNodes.length === 0) return;
+
+            const connectVal = $(this).val() || null;
+            selectedNodes.forEach(node => {
+                node.setData('connect', connectVal);
+            });
+
+            minder.refresh();
+            minder.layout(200);
+            minder.fire('contentchange');
+            showToast("Branch connection style updated.");
+        });
+
+        // 8. Detach / Reattach actions wiring
+        $('#btnDetachNode').off('click').on('click', detachSelectedNode);
+        $('#btnReattachNode').off('click').on('click', reattachSelectedNode);
+
+        // 9. Synchronize selection changes to update sidebar controls
+        minder.on('selectionchange', function () {
+            // Instantly re-render custom relations to update drag handles for selected nodes
+            renderCustomRelations();
+
+            const selectedNodes = minder.getSelectedNodes();
+            if (selectedNodes.length === 1) {
+                const node = selectedNodes[0];
+                if (node.isRoot()) {
+                    $('#btnDetachNode').hide();
+                    $('#btnReattachNode').hide();
+                    $('#diyNodeLayoutSelect').val('');
+                    const connect = node.getData('connect') || '';
+                    $('#diyNodeConnectSelect').val(connect);
+                } else if (node.getData('isIsolated')) {
+                    $('#btnDetachNode').hide();
+                    $('#btnReattachNode').show();
+                    $('#diyNodeLayoutSelect').val('');
+                    const connect = node.getData('connect') || '';
+                    $('#diyNodeConnectSelect').val(connect);
+                } else {
+                    $('#btnDetachNode').show();
+                    $('#btnReattachNode').hide();
+                    const layout = node.getData('layout') || '';
+                    $('#diyNodeLayoutSelect').val(layout);
+                    const connect = node.getData('connect') || '';
+                    $('#diyNodeConnectSelect').val(connect);
+                }
+            } else {
+                $('#btnDetachNode').hide();
+                $('#btnReattachNode').hide();
+                $('#diyNodeLayoutSelect').val('');
+                $('#diyNodeConnectSelect').val('');
+            }
         });
     }
 

@@ -2,13 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.0.1] - 2026-05-29
+
+### Added
+- **Interactive Freestyle Relation Curves**: Replaced straight relation lines with smooth quadratic Bezier curves. Dragging circular control point handles and the midpoint labels works flawlessly with automatic viewport zoom calibration.
+- **Customizable Relation Colors & Styles**: Added solid, dashed, and dotted line options, and six professional color choices (Red, Blue, Green, Purple, Orange, Gray) inside the enhanced prompt modal.
+- **Customizable Branch Connect Styles**: Added a sidebar dropdown select to configure branch connectors per-node (`bezier`, `poly` (orthogonal), `arc`, `line`, or `none`) triggering real-time animated layout reflows (`minder.layout(200)`) compatible with compact themes.
+- **New Upward & Downward Tree Templates**: Registered `bottom-tree` and `top-tree` vertical templates in English, Chinese, and other 5 languages.
+- **Horizontal Logical Chart Picker Icon**: Swapped the vertical file-tree icon of the Logical Chart template with a correct horizontal orthogonal diagram SVG swatch.
+
+### Changed
+- Bumps package version to **3.0.1** in `package.json`, `package-lock.json`, and all release notes.
+
 ## [3.0.0] - 2026-05-28
 
 ### Added
 - **Default `.km` Saving**: Changed default save format to `.km` natively (which maps directly to KityMinder JSON). Bidirectional `.km` and `.json` handling now integrated across open, save, and export workflows.
 - **DrawDD Import and Export**: Direct support for importing/exporting to the `.drawdd` file format (AntV X6 graph structure). Included a vertical centering layout algorithm for export to avoid overlapping, and graph-to-tree conversion for imports.
 - **Content-Based DrawDD Detection**: Added automatic identification of DrawDD format diagrams (via the presence of `cells` property) when importing standard `.json` or `.km` files, converting them on-the-fly.
-- **Isolated Nodes**: Free-floating nodes with hidden connector lines (`connect: "none"`), allowing the user to create independent nodes (`Ctrl+I`) and drag them anywhere.
+- **Isolated Nodes**: Free-floating nodes with hidden connector lines (`connect: "none"`), allowing the user to create independent nodes (`Ctrl+I`) and drag them anywhere. Includes a stagger offset calculation to prevent overlapping on creation.
+- **Flicker-Free Connection Lines**: Instantly intercepts core KityMinder templates to return `'none'` connection lines for isolated nodes, eliminating any visual rendering line flashing on all cycles.
+- **Detach and Reattach Actions**: Interactive sidebar action buttons to detach any branch node into a free-floating isolated topic, or reattach an isolated node back into a normal layout-managed topic.
+- **Node Layout Directions**: XMind-style branch layout inheritance. Lets the user configure the layout direction (`right`, `left`, `bottom`, `top`, or `inherit`) of any individual node via a new sidebar dropdown, dynamically reflowing all descendants.
+- **Customizable Group Bracket Positions**: Let users choose `right`, `left`, `top`, or `bottom` custom curly brackets when creating sibling summaries, and edit or delete them dynamically via the enhanced prompt modal.
 - **Dashed Relation Lines**: Connect any arbitrary nodes (`Ctrl+L`) with customizable dashed red SVG lines featuring center explanation labels and arrowheads, dynamically redrawn during panning, zooming, or dragging.
 - **Sibling Enclosing Brackets**: Group sibling subtopics (`Ctrl+B`) with custom light violet shaded boundaries, a curly bracket `}`, and a summary explanation tag.
 - **Application Insert Menu**: Added a native Electron "Insert" menu containing actions and keyboard shortcuts for these new mindmap structural elements.

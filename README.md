@@ -6,11 +6,15 @@ KityDD is a high-performance mind mapping tool built on the robust KityMinder en
 
 ## Current Release
 
-**v3.0.0** (2026-05-28)
+**v3.0.1** (2026-05-29)
 
 - Adds **Default `.km` Saving**: Standardized native saving/loading to `.km` (KityMinder JSON).
 - Adds **DrawDD Import and Export**: High-fidelity `.drawdd` file support with vertical centering layout to prevent overlaps.
-- Adds **Isolated Nodes**: Free-floating detached nodes with hidden connection lines (`Ctrl+I`).
+- Adds **Isolated Nodes**: Free-floating detached nodes with hidden connection lines (`Ctrl+I`) and custom dragging offsets.
+- Adds **Flicker-Free Connection Lines**: Instantly intercepts template rendering to hide isolated node lines with 0 frames of flashing.
+- Adds **Detach and Reattach Actions**: Interactive sidebar actions to detach branch nodes into isolated topics or reattach them seamlessly.
+- Adds **Node Layout Directions**: XMind-style layout inheritance to configure branch layout directions (Right, Left, Downwards, Upwards, or Inherited) individually via the sidebar.
+- Adds **Customizable Group Bracket Positions**: Let users choose right, left, top, or bottom curly brackets when creating sibling summaries, and edit or delete them dynamically.
 - Adds **Dashed Relation Lines**: Draw customized red dashed connection lines with labels and arrowheads (`Ctrl+L`).
 - Adds **Sibling Enclosing Brackets**: Group siblings under violet shaded bounding boxes with a curly bracket and explanation (`Ctrl+B`).
 - Adds **Insert Menu**: Native application menu column with shortcuts for these new elements.
@@ -82,7 +86,7 @@ To validate the current release surface in one command:
 npm run validate:release
 ```
 
-This audit checks the source wiring for templates, themes, About dialog, HiDPI PNG export, the release documentation for `v3.0.0`, and that `dist/KityDD 3.0.0.exe` exists and is newer than the audited release files.
+This audit checks the source wiring for templates, themes, About dialog, HiDPI PNG export, the release documentation for `v3.0.1`, and that `dist/KityDD 3.0.1.exe` exists and is newer than the audited release files.
 
 ## ⌨️ Keyboard Shortcuts
 
