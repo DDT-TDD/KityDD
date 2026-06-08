@@ -6,7 +6,7 @@ KityDD is a high-performance mind mapping tool built on the robust KityMinder en
 
 ## Current Release
 
-**v3.0.1** (2026-05-29)
+**v3.1.0** (2026-06-06)
 
 - Adds **Default `.km` Saving**: Standardized native saving/loading to `.km` (KityMinder JSON).
 - Adds **DrawDD Import and Export**: High-fidelity `.drawdd` file support with vertical centering layout to prevent overlaps.
@@ -86,7 +86,7 @@ To validate the current release surface in one command:
 npm run validate:release
 ```
 
-This audit checks the source wiring for templates, themes, About dialog, HiDPI PNG export, the release documentation for `v3.0.1`, and that `dist/KityDD 3.0.1.exe` exists and is newer than the audited release files.
+This audit checks the source wiring for templates, themes, About dialog, HiDPI PNG export, the release documentation for `v3.1.0`, and that `dist/KityDD 3.1.0.exe` exists and is newer than the audited release files.
 
 ## ⌨️ Keyboard Shortcuts
 

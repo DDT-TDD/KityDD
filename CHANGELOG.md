@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.1.0] - 2026-06-06
+
+### Added
+- **Multiline Text Editing**: Enabled full multiline support across all mindmap text fields. Hit `Shift+Enter` or `Ctrl+Enter` inside the inline editor to insert a newline. Standard `Enter` commits the text.
+- **Notes & Bracket Descriptions**: Re-configured prompt dialogs so plain `Enter` inserts newlines and `Ctrl+Enter`/`Cmd+Enter` confirms the entry. Double-clicking the note icon dynamically triggers note editing.
+- **Multiline Relation & Link Labels**: Relation/link labels automatically split on newlines (`\n`) and stack vertically inside dynamically sized bounding containers.
+- **Node Shape & Stroke Customization**: Added dropdown styling selectors in the sidebar to configure per-node shapes (rounded rectangle, rectangle, ellipse, circle) and border stroke properties (style: solid/dashed/dotted, border thickness, color, and background fill).
+- **Child Node Elevation**: Introduced a tree inversion restructuring algorithm to elevate any child node to the root node, automatically maintaining all sibling branches and focus selection.
+- **Interactive Checklist Checkboxes**: Implemented task checklist checkboxes (`⬜`/`✅`) that can be toggled either via a sidebar button or by clicking directly on the checkbox character on the mindmap canvas.
+
+### Changed
+- Bumps package version to **3.1.0** in `package.json`, `package-lock.json`, and all release notes.
+
 ## [3.0.1] - 2026-05-29
 
 ### Added

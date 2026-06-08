@@ -1311,7 +1311,7 @@
                 receiver.listen("input", function (e) {
                     receiver.enable();
                     if (e.type == "keydown") {
-                        if (e.is("Enter")) {
+                        if (e.is("Enter") && !e.shiftKey && !e.ctrlKey) {
                             e.preventDefault();
                             return fsm.jump("normal", "input-commit");
                         }

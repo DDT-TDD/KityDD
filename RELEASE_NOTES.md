@@ -1,5 +1,29 @@
 # Release Notes - KityDD
 
+## v3.1.0 (2026-06-06)
+
+This release introduces comprehensive updates to multiline editing capabilities, per-node styling, parent-inversion root node elevation, and interactive task checklist checkboxes.
+
+### Highlights
+
+#### 1. Universal Multiline Text Fields
+- **Inline Editor**: Press `Shift+Enter` or `Ctrl+Enter` to insert newlines inside any node, while plain `Enter` commits the text.
+- **Notes Dialogue**: Re-wired input dialogs so plain `Enter` inserts newlines and `Ctrl+Enter`/`Cmd+Enter` submits form contents. Pre-populates editing views with the current note.
+- **Interactive Notes**: Double-clicking the note icon on any node dynamically opens the note editor.
+- **Multiline Node Links**: Custom relation/link labels automatically split on newlines (`\n`) and stack vertically within custom-fit bounding boxes.
+
+#### 2. Per-Node Shapes and Border Customization
+- **Sidebar Styling Controls**: Added selectors in the sidebar to configure per-node shapes (**Rounded Rectangle**, **Rectangle**, **Ellipse**, or **Circle**) and custom border strokes (**Thickness**, **Solid/Dashed/Dotted**, **Color**, and **Background Fill**).
+- **Style Inheritance & Selection Sync**: Correctly synchronizes styling selections in the Action sidebar for all node selections including the root node.
+
+#### 3. Child Node Elevation
+- **Relationship Inversion Algorithm**: Elevates deep child nodes to become the new central root node. Inverts parent-child relationships along the path to the old root while fully retaining sibling sub-branches and focus selection.
+
+#### 4. Canvas-Interactive Checklist Checkboxes
+- **Toggling & Clicking**: Toggle task checklist checkboxes (`⬜`/`✅`) from the sidebar or click directly on the checkbox prefix on the canvas to update status instantly.
+
+---
+
 ## v3.0.1 (2026-05-29)
 
 This release introduces major enhancements to relation lines and branch connections, adding support for freestyle draggable Bezier curves, custom style/color menus, per-branch custom connection styles with real-time layout reflows, two new vertical tree templates, and a horizontal orthogonal logical chart icon in the template picker.

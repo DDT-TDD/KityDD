@@ -402,7 +402,7 @@
         });
 
         $('#kityddPromptInput').off('keydown').on('keydown', function (e) {
-            if (e.key === 'Enter' && (!e.shiftKey)) {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
                 $('#kityddPromptConfirm').click();
             }
@@ -623,9 +623,13 @@
                 });
                 break;
             case 'insert-note':
-                window.kityddPrompt("Insert Note", "Enter Note text...", function (text) {
-                    editor.minder.execCommand('note', text);
-                });
+                {
+                    const currentNode = editor.minder.getSelectedNode();
+                    const existingNote = currentNode ? currentNode.getData('note') : '';
+                    window.kityddPrompt("Insert Note", "Enter Note text...", function (text) {
+                        editor.minder.execCommand('note', text);
+                    }, false, null, false, null, false, null, null, existingNote);
+                }
                 break;
             case 'isolated':
                 createIsolatedNode();
@@ -1534,32 +1538,49 @@
             // Explanation label
             if (rel.text) {
                 const textBg = new kity.Rect();
-                const text = new kity.Text(rel.text);
-                text.fill(strokeColor);
-                text.setSize(10);
-                text.setStyle({
-                    fontFamily: 'Segoe UI, sans-serif',
-                    fontSize: '11px',
-                    fontWeight: 'bold'
+                const lines = rel.text.split('\n');
+                const lineHeight = 14;
+                const totalHeight = lines.length * lineHeight + 4;
+                let maxLen = 0;
+                lines.forEach(lineText => {
+                    if (lineText.length > maxLen) {
+                        maxLen = lineText.length;
+                    }
                 });
-                if (text.setTextAnchor) text.setTextAnchor('middle');
-                else text.node.setAttribute('text-anchor', 'middle');
+                const textWidth = maxLen * 6.5 + 12;
 
-                const textWidth = rel.text.length * 7 + 10;
-                textBg.setSize(textWidth, 18);
-                textBg.setPosition(labelX - textWidth / 2, labelY - 9);
+                textBg.setSize(textWidth, totalHeight);
+                textBg.setPosition(labelX - textWidth / 2, labelY - totalHeight / 2);
                 textBg.fill('#ffffff');
                 textBg.stroke(strokeColor, 1);
                 textBg.setRadius(3);
-
-                text.setPosition(labelX, labelY + 4);
-
                 relationGroup.addShape(textBg);
-                relationGroup.addShape(text);
+
+                const textShapes = [];
+                const startY = labelY - (totalHeight / 2) + 11;
+
+                lines.forEach((lineText, idx) => {
+                    const text = new kity.Text(lineText);
+                    text.fill(strokeColor);
+                    text.setSize(10);
+                    text.setStyle({
+                        fontFamily: 'Segoe UI, sans-serif',
+                        fontSize: '11px',
+                        fontWeight: 'bold'
+                    });
+                    if (text.setTextAnchor) text.setTextAnchor('middle');
+                    else text.node.setAttribute('text-anchor', 'middle');
+
+                    text.setPosition(labelX, startY + (idx * lineHeight));
+                    relationGroup.addShape(text);
+                    textShapes.push(text);
+                });
 
                 if (isSelected) {
                     textBg.node.style.cursor = 'move';
-                    text.node.style.cursor = 'move';
+                    textShapes.forEach(t => {
+                        t.node.style.cursor = 'move';
+                    });
 
                     const dragHandler = function (e) {
                         e.preventDefault();
@@ -1592,7 +1613,9 @@
                     };
 
                     textBg.node.addEventListener('mousedown', dragHandler);
-                    text.node.addEventListener('mousedown', dragHandler);
+                    textShapes.forEach(t => {
+                        t.node.addEventListener('mousedown', dragHandler);
+                    });
                 }
             }
         });
@@ -1756,20 +1779,143 @@
                 boundaryGroup.addShape(bracketPath);
 
                 if (boundary.text) {
-                    const text = new kity.Text(boundary.text);
-                    text.fill(baseColor);
-                    text.setSize(11);
-                    text.setStyle({
-                        fontFamily: 'Segoe UI, sans-serif',
-                        fontSize: '12px',
-                        fontWeight: '600'
+                    const lines = boundary.text.split('\n');
+                    const lineHeight = 15;
+                    const totalHeight = (lines.length - 1) * lineHeight;
+                    let startY = textY;
+                    if (side === 'left' || side === 'right') {
+                        startY = textY - (totalHeight / 2);
+                    } else if (side === 'top') {
+                        startY = textY - totalHeight;
+                    }
+                    lines.forEach((lineText, idx) => {
+                        const text = new kity.Text(lineText);
+                        text.fill(baseColor);
+                        text.setSize(11);
+                        text.setStyle({
+                            fontFamily: 'Segoe UI, sans-serif',
+                            fontSize: '12px',
+                            fontWeight: '600'
+                        });
+                        text.setPosition(textX, startY + (idx * lineHeight));
+                        text.node.setAttribute('text-anchor', textAnchor);
+                        boundaryGroup.addShape(text);
                     });
-                    text.setPosition(textX, textY);
-                    text.node.setAttribute('text-anchor', textAnchor);
-                    boundaryGroup.addShape(text);
                 }
             });
         });
+    }
+
+    function restructureTreeForNewRoot(root, targetId) {
+        let targetNode = null;
+        let parentMap = new Map();
+
+        function traverse(node, parent) {
+            if (node.data && node.data.id === targetId) {
+                targetNode = node;
+            }
+            if (parent) {
+                parentMap.set(node, parent);
+            }
+            if (node.children) {
+                node.children.forEach(child => traverse(child, node));
+            }
+        }
+        traverse(root, null);
+
+        if (!targetNode) return null;
+
+        let path = [];
+        let curr = targetNode;
+        while (curr) {
+            path.push(curr);
+            curr = parentMap.get(curr);
+        }
+
+        for (let i = 0; i < path.length - 1; i++) {
+            let child = path[i];
+            let parent = path[i + 1];
+
+            if (parent.children) {
+                parent.children = parent.children.filter(c => c !== child);
+            }
+
+            if (!child.children) {
+                child.children = [];
+            }
+            child.children.push(parent);
+        }
+
+        return targetNode;
+    }
+
+    function setNodeAsCentral() {
+        if (!editor || !editor.minder) return;
+        const minder = editor.minder;
+        const selectedNode = minder.getSelectedNode();
+        if (!selectedNode) {
+            alert('Please select a node to elevate it to the central node.');
+            return;
+        }
+        if (selectedNode.isRoot()) {
+            alert('The selected node is already the central node.');
+            return;
+        }
+
+        // Clear isolated properties since the node is now becoming the central root node
+        selectedNode.setData('isIsolated', null);
+        selectedNode.setData('connect', null);
+        selectedNode.setData('layout_default_offset', null);
+
+        minder.getRoot().traverse(node => {
+            if (!node.getData('id')) {
+                node.setData('id', 'node-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9));
+            }
+        });
+
+        const targetId = selectedNode.getData('id');
+        const minderJson = minder.exportJson();
+
+        const newRoot = restructureTreeForNewRoot(minderJson.root, targetId);
+        if (!newRoot) {
+            alert('Failed to restructure the mindmap.');
+            return;
+        }
+
+        minderJson.root = newRoot;
+        minder.importJson(minderJson);
+        minder.refresh();
+        minder.fire('contentchange');
+        const newSelectedNode = minder.getNodeById(targetId);
+        if (newSelectedNode) {
+            minder.select(newSelectedNode, true);
+        }
+        showToast("Node elevated to central node!");
+    }
+
+    function toggleTaskStatus() {
+        if (!editor || !editor.minder) return;
+        const minder = editor.minder;
+        const selectedNodes = minder.getSelectedNodes();
+        if (selectedNodes.length === 0) {
+            alert('Please select at least one node to toggle task status.');
+            return;
+        }
+
+        selectedNodes.forEach(node => {
+            let text = node.getText() || '';
+            if (text.startsWith('⬜ ')) {
+                text = '✅ ' + text.substring(2);
+            } else if (text.startsWith('✅ ')) {
+                text = '⬜ ' + text.substring(2);
+            } else {
+                text = '⬜ ' + text;
+            }
+            node.setText(text);
+            node.render();
+        });
+        minder.fire('contentchange');
+        showToast("Task status updated.");
     }
 
     function createIsolatedNode() {
@@ -2218,6 +2364,121 @@
             showToast("Branch connection style updated.");
         });
 
+        // 7.6 Custom Styling selectors wiring
+        $('#diyNodeShapeSelect').off('change').on('change', function () {
+            const selectedNodes = minder.getSelectedNodes();
+            if (selectedNodes.length === 0) return;
+            const val = $(this).val() || null;
+            selectedNodes.forEach(node => {
+                node.setData('shape', val);
+                node.render();
+            });
+            minder.layout(200);
+            minder.fire('contentchange');
+            showToast("Node shape updated.");
+        });
+
+        $('#diyNodeBgSelect').off('change').on('change', function () {
+            const selectedNodes = minder.getSelectedNodes();
+            if (selectedNodes.length === 0) return;
+            const val = $(this).val() || null;
+            selectedNodes.forEach(node => {
+                node.setData('background', val);
+                node.render();
+            });
+            minder.fire('contentchange');
+            showToast("Node background updated.");
+        });
+
+        $('#diyNodeColorSelect').off('change').on('change', function () {
+            const selectedNodes = minder.getSelectedNodes();
+            if (selectedNodes.length === 0) return;
+            const val = $(this).val() || null;
+            selectedNodes.forEach(node => {
+                node.setData('color', val);
+                node.render();
+            });
+            minder.fire('contentchange');
+            showToast("Node text color updated.");
+        });
+
+        $('#diyNodeStrokeSelect').off('change').on('change', function () {
+            const selectedNodes = minder.getSelectedNodes();
+            if (selectedNodes.length === 0) return;
+            const val = $(this).val() || null;
+            selectedNodes.forEach(node => {
+                node.setData('stroke', val);
+                node.render();
+            });
+            minder.fire('contentchange');
+            showToast("Node border color updated.");
+        });
+
+        $('#diyNodeStrokeStyleSelect').off('change').on('change', function () {
+            const selectedNodes = minder.getSelectedNodes();
+            if (selectedNodes.length === 0) return;
+            const val = $(this).val() || null;
+            selectedNodes.forEach(node => {
+                node.setData('stroke-style', val);
+                node.render();
+            });
+            minder.fire('contentchange');
+            showToast("Node border style updated.");
+        });
+
+        $('#diyNodeStrokeWidthSelect').off('change').on('change', function () {
+            const selectedNodes = minder.getSelectedNodes();
+            if (selectedNodes.length === 0) return;
+            const val = $(this).val();
+            const widthVal = val === "" ? undefined : parseInt(val);
+            selectedNodes.forEach(node => {
+                node.setData('stroke-width', widthVal);
+                node.render();
+            });
+            minder.fire('contentchange');
+            showToast("Node border width updated.");
+        });
+
+        $('#diyNodePrioritySelect').off('change').on('change', function () {
+            const selectedNodes = minder.getSelectedNodes();
+            if (selectedNodes.length === 0) return;
+            const val = $(this).val() ? parseInt($(this).val()) : null;
+            selectedNodes.forEach(node => {
+                node.setData('priority', val);
+                node.render();
+            });
+            minder.layout(200);
+            minder.fire('contentchange');
+            showToast("Node priority updated.");
+        });
+
+        $('#diyNodeProgressSelect').off('change').on('change', function () {
+            const selectedNodes = minder.getSelectedNodes();
+            if (selectedNodes.length === 0) return;
+            const val = $(this).val() ? parseInt($(this).val()) : null;
+            selectedNodes.forEach(node => {
+                node.setData('progress', val);
+                node.render();
+            });
+            minder.layout(200);
+            minder.fire('contentchange');
+            showToast("Node progress updated.");
+        });
+
+        $('#diyNodeResourceInput').off('change').on('change', function () {
+            const selectedNodes = minder.getSelectedNodes();
+            if (selectedNodes.length === 0) return;
+            const val = $(this).val().trim();
+            const tags = val ? val.split(',').map(t => t.trim()).filter(t => t.length > 0) : [];
+            selectedNodes.forEach(node => {
+                node.setData('resource', tags.length > 0 ? tags : null);
+                node.render();
+            });
+            minder.layout(200);
+            minder.fire('contentchange');
+            showToast("Node tags updated.");
+        });
+
         // 8. Detach / Reattach actions wiring
         $('#btnDetachNode').off('click').on('click', detachSelectedNode);
         $('#btnReattachNode').off('click').on('click', reattachSelectedNode);
@@ -2233,28 +2494,115 @@
                 if (node.isRoot()) {
                     $('#btnDetachNode').hide();
                     $('#btnReattachNode').hide();
-                    $('#diyNodeLayoutSelect').val('');
+                    $('#btnSetCentral').hide();
+                    $('#btnToggleTask').show();
+                    const layout = node.getData('layout') || '';
+                    $('#diyNodeLayoutSelect').val(layout);
                     const connect = node.getData('connect') || '';
                     $('#diyNodeConnectSelect').val(connect);
                 } else if (node.getData('isIsolated')) {
                     $('#btnDetachNode').hide();
                     $('#btnReattachNode').show();
+                    $('#btnSetCentral').show();
+                    $('#btnToggleTask').show();
                     $('#diyNodeLayoutSelect').val('');
                     const connect = node.getData('connect') || '';
                     $('#diyNodeConnectSelect').val(connect);
                 } else {
                     $('#btnDetachNode').show();
                     $('#btnReattachNode').hide();
+                    $('#btnSetCentral').show();
+                    $('#btnToggleTask').show();
                     const layout = node.getData('layout') || '';
                     $('#diyNodeLayoutSelect').val(layout);
                     const connect = node.getData('connect') || '';
                     $('#diyNodeConnectSelect').val(connect);
                 }
+                $('#diyNodeShapeSelect').val(node.getData('shape') || '');
+                $('#diyNodeBgSelect').val(node.getData('background') || '');
+                $('#diyNodeColorSelect').val(node.getData('color') || '');
+                $('#diyNodeStrokeSelect').val(node.getData('stroke') || '');
+                $('#diyNodeStrokeStyleSelect').val(node.getData('stroke-style') || '');
+                const sw = node.getData('stroke-width');
+                $('#diyNodeStrokeWidthSelect').val(sw !== undefined ? sw.toString() : '');
+                
+                const priority = node.getData('priority') || '';
+                $('#diyNodePrioritySelect').val(priority);
+
+                const progress = node.getData('progress') || '';
+                $('#diyNodeProgressSelect').val(progress);
+
+                const resources = node.getData('resource') || [];
+                $('#diyNodeResourceInput').val(resources.join(', '));
             } else {
                 $('#btnDetachNode').hide();
                 $('#btnReattachNode').hide();
+                $('#btnSetCentral').hide();
+                if (selectedNodes.length > 1) {
+                    $('#btnToggleTask').show();
+                } else {
+                    $('#btnToggleTask').hide();
+                }
                 $('#diyNodeLayoutSelect').val('');
                 $('#diyNodeConnectSelect').val('');
+                $('#diyNodeShapeSelect').val('');
+                $('#diyNodeBgSelect').val('');
+                $('#diyNodeColorSelect').val('');
+                $('#diyNodeStrokeSelect').val('');
+                $('#diyNodeStrokeStyleSelect').val('');
+                $('#diyNodeStrokeWidthSelect').val('');
+                $('#diyNodePrioritySelect').val('');
+                $('#diyNodeProgressSelect').val('');
+                $('#diyNodeResourceInput').val('');
+            }
+        });
+
+        // 9.5 Note double-click editing request listener
+        minder.on('editnoterequest', function () {
+            const node = minder.getSelectedNode();
+            if (!node) return;
+            const existingNote = node.getData('note') || '';
+            window.kityddPrompt("Insert Note", "Enter Note text...", function (text) {
+                minder.execCommand('note', text);
+            }, false, null, false, null, false, null, null, existingNote);
+        });
+
+        // 9.6 Interactive checklist checkbox click handler
+        minder.on('click', function (e) {
+            const node = e.getTargetNode();
+            if (!node) return;
+
+            const text = node.getText() || '';
+            if (text.startsWith('⬜ ') || text.startsWith('✅ ')) {
+                const mousePoint = e.getPosition();
+                const textRenderer = node.getRenderer('TextRenderer');
+                if (textRenderer) {
+                    const textShape = textRenderer.getRenderShape();
+                    if (textShape) {
+                        const bbox = textShape.getRenderBox(minder.getRenderContainer());
+                        // If click is within the first 25px of the node's text rendering box
+                        if (mousePoint.x >= bbox.left && mousePoint.x <= bbox.left + 25) {
+                            let newText = text.startsWith('⬜ ') ? '✅ ' + text.substring(2) : '⬜ ' + text.substring(2);
+                            node.setText(newText);
+                            node.render();
+                            minder.layout(200);
+                            minder.fire('contentchange');
+                            showToast("Task status updated.");
+                        }
+                    }
+                }
+            }
+        });
+
+        // 9.7 Global keyboard shortcut listener (Ctrl+Shift+T toggles task status)
+        window.addEventListener('keydown', function (e) {
+            const activeEl = document.activeElement;
+            const isInputFocused = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.contentEditable === 'true' || activeEl.classList.contains('receiver'));
+            if (isInputFocused) return;
+
+            if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 't') {
+                e.preventDefault();
+                toggleTaskStatus();
             }
         });
     }
@@ -2353,6 +2701,10 @@
             addLinkBetweenSelectedNodes();
         } else if (action === 'boundary') {
             createBoundaryForSelectedNodes();
+        } else if (action === 'set-central') {
+            setNodeAsCentral();
+        } else if (action === 'toggle-task') {
+            toggleTaskStatus();
         }
     });
 
