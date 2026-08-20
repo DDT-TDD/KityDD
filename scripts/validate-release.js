@@ -69,18 +69,21 @@ const releaseInputs = [
     path.join('local-kity-minder', 'bower_components', 'kityminder-core', 'dist', 'kityminder.core.js')
 ];
 
-pushCheck(checks, 'package version', version === '3.1.0', version);
-pushCheck(checks, 'README current release', files.readme.includes('**v3.1.0** (2026-06-06)'), 'README current release block');
+pushCheck(checks, 'package version', version === '3.2.0', version);
+pushCheck(checks, 'README current release', files.readme.includes('**v3.2.0** (2026-08-20)'), 'README current release block');
 pushCheck(checks, 'README theme count', files.readme.includes('34 colour themes'), 'README feature summary');
 pushCheck(checks, 'README documents validation command', files.readme.includes('npm run validate:release'), 'README validation section');
-pushCheck(checks, 'CHANGELOG current version', files.changelog.includes('## [3.1.0] - 2026-06-06'), 'CHANGELOG heading');
+pushCheck(checks, 'CHANGELOG current version', files.changelog.includes('## [3.2.0] - 2026-08-20'), 'CHANGELOG heading');
 pushCheck(checks, 'CHANGELOG mentions validation script', files.changelog.includes('`npm run validate:release`'), 'CHANGELOG release notes');
-pushCheck(checks, 'RELEASE_NOTES current version', files.releaseNotes.includes('## v3.1.0 (2026-06-06)'), 'RELEASE_NOTES heading');
+pushCheck(checks, 'RELEASE_NOTES current version', files.releaseNotes.includes('## v3.2.0 (2026-08-20)'), 'RELEASE_NOTES heading');
 pushCheck(checks, 'RELEASE_NOTES mentions validation command', files.releaseNotes.includes('`npm run validate:release`'), 'RELEASE_NOTES validation section');
-pushCheck(checks, 'RELEASE_NOTES template icon description', files.releaseNotes.includes('custom SVG icons') || files.releaseNotes.includes('isolated nodes') || files.releaseNotes.includes('multiline text'), 'template icon, isolated nodes or multiline text wording');
+pushCheck(checks, 'RELEASE_NOTES security description', files.releaseNotes.includes('vulnerability remediation') || files.releaseNotes.includes('security') || files.releaseNotes.includes('modules'), 'security audit and module listing wording');
 pushCheck(checks, 'package scripts include validate:release', files.packageJson.includes('"validate:release": "node scripts/validate-release.js"'), 'package.json scripts');
 pushCheck(checks, 'index loads style.css', files.index.includes('href="style.css"'), 'style.css link');
 pushCheck(checks, 'About modal theme summary', files.index.includes('34 themes including Dark, Ocean, Forest'), 'About modal feature highlight');
+pushCheck(checks, 'About modal module listing', (files.index.includes('Integrated Modules') && files.index.includes('KityMinder Core') && files.index.includes('Electron')), 'About modal module listing');
+pushCheck(checks, 'Content Security Policy meta tag', files.index.includes('Content-Security-Policy'), 'CSP meta tag in index.html');
+pushCheck(checks, 'Main process navigation security', files.main.includes('setWindowOpenHandler') && files.main.includes('will-navigate'), 'main.js navigation guards');
 pushCheck(checks, 'index loads patched core', files.index.includes('kityminder.core.js') && !files.index.includes('kityminder.core.min.js'), 'core script path');
 pushCheck(checks, 'PNG export patch markers', files.core.includes('var scale = 2') && files.core.includes('ctx.scale(scale, scale)'), '2x export markers');
 pushCheck(checks, 'About menu IPC send', files.main.includes("webContents.send('show-about')"), 'main.js About menu');

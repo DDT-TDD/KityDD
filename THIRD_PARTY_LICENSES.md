@@ -96,17 +96,29 @@ KityDD uses the following third-party libraries and components. Below is a summa
 - **Description**: A library for creating, reading, and editing .zip files with JavaScript.
 - **URL**: https://stuk.github.io/jszip
 
-## Desktop Framework
+## Desktop Framework & Runtimes
 
 ### Electron
 - **License**: MIT
-- **Copyright**: (c) 2013-2024 GitHub Inc.
+- **Copyright**: (c) GitHub Inc. / Electron Contributors
 - **Description**: A framework for building cross-platform desktop applications using web technologies.
 - **URL**: https://www.electronjs.org
 
+### Node.js
+- **License**: MIT
+- **Copyright**: (c) Node.js contributors
+- **Description**: Asynchronous event-driven JavaScript runtime.
+- **URL**: https://nodejs.org
+
+### Chromium
+- **License**: BSD-3-Clause
+- **Copyright**: (c) The Chromium Authors
+- **Description**: Open-source web and graphics rendering engine.
+- **URL**: https://www.chromium.org
+
 ### Electron Builder
 - **License**: MIT
-- **Copyright**: (c) 2016-2024
+- **Copyright**: (c) Electron Builder Contributors
 - **Description**: A tool for packaging and building Electron applications.
 - **URL**: https://www.electron.build
 

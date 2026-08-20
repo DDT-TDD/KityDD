@@ -1,6 +1,6 @@
 {
   "name": "kitydd",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "Professional Mindmap Tool - Electron implementation of KityMinder",
   "main": "main.js",
   "author": "DDT-TDD",
@@ -30,7 +30,7 @@
     }
   },
   "devDependencies": {
-    "electron": "^40.6.0",
-    "electron-builder": "^26.8.1"
+    "electron": "^43.4.1",
+    "electron-builder": "^26.15.3"
   }
 }

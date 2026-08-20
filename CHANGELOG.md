@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.2.0] - 2026-08-20
+
+### Security & Hardening
+- **Comprehensive Vulnerability Remediation**: Remediated all 19 identified security vulnerabilities in dependencies (including critical tar traversal and high severity Electron/parser advisories), achieving a clean **0 vulnerabilities** audit status.
+- **Electron Navigation Isolation**: Enforced `setWindowOpenHandler` and `will-navigate` interception in `main.js` to prevent malicious in-app navigation and ensure external hyperlinks open strictly in the system default browser.
+- **Content Security Policy (CSP)**: Added Content-Security-Policy meta protection to `index.html` guarding against arbitrary remote script injection.
+
+### Added
+- **Integrated Modules & Components Registry in About Dialog**: Added an extensive, beautifully styled catalog in the About modal listing all 14 core modules and engines (Electron, Node.js, Chromium, KityMinder Core, Kity SVG, Hotbox, AngularJS, Bootstrap, jQuery, CodeMirror, Marked, JSZip, KityFormula, KityCharts, Color-Picker) with their license types and functional responsibilities.
+
+### Changed
+- **Dependency Upgrades**: Upgraded `electron` to latest secure release and `electron-builder` to `^26.15.3`.
+- Bumps package version to **3.2.0** in `package.json`, `package-lock.json`, and all release notes.
+- Updated release validation suite (`npm run validate:release`) with security and module registry checks.
+
 ## [3.1.0] - 2026-06-06
 
 ### Added

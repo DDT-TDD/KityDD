@@ -6,7 +6,16 @@ KityDD is a high-performance mind mapping tool built on the robust KityMinder en
 
 ## Current Release
 
-**v3.1.0** (2026-06-06)
+**v3.2.0** (2026-08-20)
+
+- **Deep Security Audit & Dependency Hardening**: Fully audited all Node.js and Electron packages, remediating all 19 identified vulnerabilities (including critical tar archive traversal and high severity Electron/parser advisories) down to **0 vulnerabilities**.
+- **Electron Runtime Security Protection**: Enforced `setWindowOpenHandler` and `will-navigate` interception to block unauthorized window creation and sandbox navigation escapes, ensuring external URLs open strictly via OS default browsers.
+- **Content Security Policy (CSP)**: Integrated strict CSP meta protection restricting unapproved script injection.
+- **About Dialog Module Registry**: Completely overhauled the About modal with an interactive, categorized catalog of all 14 underlying core engines and libraries (Electron, Node.js, Chromium, KityMinder Core, Kity SVG, Hotbox, AngularJS, CodeMirror, Marked, JSZip, KityFormula, KityCharts, Color-Picker) detailing their roles and licenses.
+- **Package Updates**: Upgraded desktop engine to latest secure Electron and electron-builder.
+- **Regression Verification**: Verified full backward and forward compatibility across mind mapping features, multi-session tabs, exports (PNG/SVG/KM/DrawDD), and layout templates.
+
+## Previous Release (v3.1.0)
 
 - Adds **Default `.km` Saving**: Standardized native saving/loading to `.km` (KityMinder JSON).
 - Adds **DrawDD Import and Export**: High-fidelity `.drawdd` file support with vertical centering layout to prevent overlaps.
@@ -86,7 +95,7 @@ To validate the current release surface in one command:
 npm run validate:release
 ```
 
-This audit checks the source wiring for templates, themes, About dialog, HiDPI PNG export, the release documentation for `v3.1.0`, and that `dist/KityDD 3.1.0.exe` exists and is newer than the audited release files.
+This audit checks the source wiring for templates, themes, About dialog, HiDPI PNG export, security configurations, the release documentation for `v3.2.0`, and that `dist/KityDD 3.2.0.exe` exists and is newer than the audited release files.
 
 ## ⌨️ Keyboard Shortcuts
 

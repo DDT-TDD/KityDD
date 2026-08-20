@@ -215,6 +215,22 @@ function createWindow() {
     console.warn('Spellchecker language setup failed:', err.message);
   }
 
+  // Security: Prevent untrusted in-app window creation, route external links to OS default browser
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https?:\/\//i.test(url) || /^mailto:/i.test(url)) {
+      require('electron').shell.openExternal(url);
+    }
+    return { action: 'deny' };
+  });
+
+  // Security: Prevent window navigation to external origins
+  mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
+    if (/^https?:\/\//i.test(navigationUrl)) {
+      event.preventDefault();
+      require('electron').shell.openExternal(navigationUrl);
+    }
+  });
+
   mainWindow.loadFile('local-kity-minder/index.html');
   setupSpellcheckContextMenu(mainWindow);
   createMenu();

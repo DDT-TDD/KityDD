@@ -1,5 +1,36 @@
 # Release Notes - KityDD
 
+## v3.2.0 (2026-08-20)
+
+This release delivers an extensive security audit, full vulnerability remediation across all packages and modules down to **0 vulnerabilities**, Electron runtime navigation hardening, Content Security Policy integration, and an interactive module registry cataloging all 14 underlying core engines in the About dialog.
+
+### Highlights
+
+#### 1. Security Audit & Zero Vulnerability Remediation
+- **Dependency Hardening**: Audited and upgraded all package dependencies, eliminating all 19 reported vulnerabilities (1 critical archive traversal advisory, 18 high-severity Electron, minimatch, picomatch, lodash, js-yaml, tmp, ip-address, and form-data CVEs) to achieve a completely clean `npm audit` result.
+- **Electron Navigation Guards**: Added main process `setWindowOpenHandler` and `will-navigate` listeners to prevent untrusted window creation and sandbox navigation escapes, ensuring all external HTTP/HTTPS links open safely in the OS default browser.
+- **Content Security Policy**: Implemented CSP meta directives guarding the renderer against arbitrary remote script execution.
+
+#### 2. About Dialog Modules & Engines Catalog
+- **Integrated Module Registry**: Overhauled the About modal with an interactive, categorized catalog detailing all 14 core components and dependencies:
+  - *Desktop Host & Runtime*: Electron 43.x, Node.js 24.x, Chromium 140.x
+  - *Mind Mapping Engine*: KityMinder Core 1.4.x (BSD-3-Clause)
+  - *Vector Graphics Engine*: Kity 2.0.0 (BSD-3-Clause)
+  - *Context Menus*: Hotbox 0.1.x (BSD-3-Clause)
+  - *UI Frameworks*: AngularJS 1.5.x, Angular-Bootstrap 0.12.x, Bootstrap 3.3.x, jQuery 2.1.x
+  - *Text & Code Editing*: CodeMirror 4.x, Angular-UI-Codemirror
+  - *Markdown Parsing*: Marked 0.3.x
+  - *Archive & Compression*: JSZip 2.x, Zip.js
+  - *Math & Formulas*: KityFormula LaTeX Engine
+  - *Data Charts*: KityCharts Engine
+  - *Color Palette*: Color-Picker
+- Displays license information and functional responsibilities for every module.
+
+#### 3. Release Verification & Backward Compatibility
+- Verified that all core mind mapping capabilities (multiline editing, isolated nodes `Ctrl+I`, relation curves `Ctrl+L`, sibling bracket groupings `Ctrl+B`, child elevation, 34 themes, multi-session tabs, and HiDPI exports) continue to operate flawlessly with zero regressions.
+
+---
+
 ## v3.1.0 (2026-06-06)
 
 This release introduces comprehensive updates to multiline editing capabilities, per-node styling, parent-inversion root node elevation, and interactive task checklist checkboxes.
