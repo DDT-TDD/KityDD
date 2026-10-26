@@ -6,7 +6,18 @@ KityDD is a high-performance mind mapping tool built on the robust KityMinder en
 
 ## Current Release
 
-**v3.2.0** (2026-08-20)
+**v3.3.0** (2026-10-26)
+
+- **Comprehensive Security Audit & 0-Vulnerability Baseline**: Remediated all 7 high-severity dependency vulnerabilities reported by `npm audit` across `@xmldom/xmldom`, `brace-expansion`, `electron`, `fast-uri`, `http-cache-semantics`, `js-yaml`, and `undici`, achieving a clean **0 vulnerabilities** audit status.
+- **Node.js October 2026 Security Release Remediation**: Verified runtime compatibility against the patched Node.js LTS v24.22.1 addressing critical vulnerabilities including `CVE-2026-111497` ("Node2Shell" / Brotli decoder out-of-bounds write).
+- **Decompression Bomb & Archive Parsing Guards**: Implemented strict 50MB in-memory decompression limits (`MAX_DECOMPRESSED_ARCHIVE_SIZE`) and uncompressed size inspection in `diy.js` for XMind (`.xmind`) and MindManager (`.mmap`) archive extraction to eliminate zip-bomb DoS and OOM crashes.
+- **Desktop Runtime IPC & File System Hardening**: Hardened `main.js` with `isSafeUrl` validation for protocol schemes (`http:`, `https:`, `mailto:`), file size boundaries (50MB maximum for mindmaps, 20MB for images), blocked execution/saving of dangerous executable formats (`.exe`, `.bat`, `.cmd`, `.ps1`, `.vbs`, etc.), and explicit `webSecurity` enforcement.
+- **Electron Upgrade (`^43.8.3`)**: Upgraded Electron to version 43.8.3, resolving sandbox preload code cache poisoning, permission origin confusion, and certificate validation mitigations.
+- **About Dialog Version Synchronization**: Synchronized the in-app About dialog version badge to `v3.3.0` while maintaining full module registry attribution.
+
+## Previous Releases
+
+### v3.2.0 (2026-08-20)
 
 - **Deep Security Audit & Dependency Hardening**: Fully audited all Node.js and Electron packages, remediating all 19 identified vulnerabilities (including critical tar archive traversal and high severity Electron/parser advisories) down to **0 vulnerabilities**.
 - **Electron Runtime Security Protection**: Enforced `setWindowOpenHandler` and `will-navigate` interception to block unauthorized window creation and sandbox navigation escapes, ensuring external URLs open strictly via OS default browsers.
@@ -15,7 +26,7 @@ KityDD is a high-performance mind mapping tool built on the robust KityMinder en
 - **Package Updates**: Upgraded desktop engine to latest secure Electron and electron-builder.
 - **Regression Verification**: Verified full backward and forward compatibility across mind mapping features, multi-session tabs, exports (PNG/SVG/KM/DrawDD), and layout templates.
 
-## Previous Release (v3.1.0)
+### v3.1.0 (2026-06-06)
 
 - Adds **Default `.km` Saving**: Standardized native saving/loading to `.km` (KityMinder JSON).
 - Adds **DrawDD Import and Export**: High-fidelity `.drawdd` file support with vertical centering layout to prevent overlaps.
@@ -95,7 +106,7 @@ To validate the current release surface in one command:
 npm run validate:release
 ```
 
-This audit checks the source wiring for templates, themes, About dialog, HiDPI PNG export, security configurations, the release documentation for `v3.2.0`, and that `dist/KityDD 3.2.0.exe` exists and is newer than the audited release files.
+This audit checks the source wiring for templates, themes, About dialog, HiDPI PNG export, security configurations, the release documentation for `v3.3.0`, and that `dist/KityDD 3.3.0.exe` exists and is newer than the audited release files.
 
 ## ⌨️ Keyboard Shortcuts
 

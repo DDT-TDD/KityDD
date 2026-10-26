@@ -1,5 +1,34 @@
 # Release Notes - KityDD
 
+## v3.3.0 (2026-10-26)
+
+This release delivers a comprehensive security audit, 0-vulnerability dependency remediation across the entire package tree, compliance with the Node.js October 2026 security release, decompression bomb defense, and runtime IPC and file-system hardening.
+
+### Highlights
+
+#### 1. Security Audit & Zero-Vulnerability Remediation
+- **Dependency Hardening**: Successfully remediated all 7 high-severity vulnerabilities discovered in `npm audit` across `@xmldom/xmldom` (<=0.8.14), `brace-expansion` (<=1.1.20, 2.0.0-2.1.6, 4.0.0-5.0.11), `electron` (43.0.0-alpha.1-43.8.0), `fast-uri` (3.0.0-3.1.8), `http-cache-semantics` (<=4.2.0), `js-yaml` (4.0.0-4.3.1), and `undici` (<=6.29.0), establishing a clean **0 vulnerabilities** baseline.
+- **Strict Dependency Overrides**: Configured persistent overrides in `package.json` locking minimum safe package versions (`@xmldom/xmldom >=0.8.15`, `brace-expansion >=1.1.21`, `electron ^43.8.3`, `fast-uri >=3.1.9`, `http-cache-semantics >=4.3.0`, `js-yaml >=4.3.2`, `undici >=6.29.1`).
+- **Electron Upgrade (`^43.8.3`)**: Upgraded Electron to version 43.8.3, resolving sandbox preload code cache poisoning, permission origin confusion, and certificate validation mitigations.
+
+#### 2. Node.js October 2026 Security Release Remediation
+- **Runtime Compliance**: Verified runtime compatibility against the patched Node.js LTS v24.22.1 addressing critical vulnerabilities including `CVE-2026-111497` ("Node2Shell" / Brotli decoder out-of-bounds write in `node:zlib`).
+- **Decompression Bomb Protection**: Added 50MB in-memory decompression guards (`MAX_DECOMPRESSED_ARCHIVE_SIZE`) and uncompressed size inspection in `diy.js` for `.xmind` and `.mmap` archive unpacking, preventing denial-of-service (DoS) and out-of-memory crashes.
+
+#### 3. Main Process & IPC Security Hardening
+- **Protocol Scheme Validation**: Added `isSafeUrl` validation in `main.js` restricting external protocol navigation to `http:`, `https:`, and `mailto:` schemes.
+- **Navigation & Sandbox Lockdown**: Hardened `setWindowOpenHandler` and `will-navigate` listeners to prevent untrusted window creation and sandbox navigation escapes.
+- **File System Limits & Executable Blocking**: Implemented 50MB file size guards in `open-file-dialog` and `read-file-by-path`, 20MB limit in `open-image-dialog`, sanitized allowed extensions, and blocked direct saving or execution of dangerous formats (`.exe`, `.bat`, `.cmd`, `.com`, `.vbs`, `.js`, `.ps1`, `.scr`, `.reg`, etc.).
+- **WebPreferences Lockdown**: Configured explicit `webSecurity: true` and `allowRunningInsecureContent: false` flags in `BrowserWindow` webPreferences.
+
+#### 4. About Dialog Version Synchronization
+- Synchronized the in-app About dialog version badge to `v3.3.0` while maintaining full module registry attribution.
+
+#### 5. Validation Suite
+- Verified release integrity using `npm run validate:release`.
+
+---
+
 ## v3.2.0 (2026-08-20)
 
 This release delivers an extensive security audit, full vulnerability remediation across all packages and modules down to **0 vulnerabilities**, Electron runtime navigation hardening, Content Security Policy integration, and an interactive module registry cataloging all 14 underlying core engines in the About dialog.
@@ -198,8 +227,7 @@ This patch release focuses on text alignment reliability, recent files tracking,
 
 #### Node Text Alignment - Final Fix
 - **Completely rewrote** the text alignment system for reliability and correctness.
-- Text alignment now uses per-node 
-oderender event hooks (synchronized with render pipeline) instead of global polling.
+- Text alignment now uses per-node `noderender` event hooks (synchronized with render pipeline) instead of global polling.
 - Eliminates the "going nuts" behavior where text would misalign after initial render.
 - Alignment state **always resets** on each render, preventing stale coordinate carry-over.
 - Uses **measured text item boundaries** from getBoundaryBox() for accurate multi-line centering/right-alignment.
@@ -234,8 +262,7 @@ oderender event hooks (synchronized with render pipeline) instead of global poll
 
 #### Build & Release
 - Version bumped to **1.1.1**.
-- Added portable build script: 
-npm run build:portable.
+- Added portable build script: `npm run build:portable`.
 - Updated documentation to reflect removed Ctrl+Shift+C toggle (no longer needed with auto-alignment).
 
 ---

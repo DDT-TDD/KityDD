@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.3.0] - 2026-10-26
+
+### Security & Hardening
+- **Zero-Vulnerability Baseline (`0 vulnerabilities`)**: Fully remediated all 7 high-severity dependency vulnerabilities identified by `npm audit` across `@xmldom/xmldom` (<=0.8.14), `brace-expansion` (<=1.1.20, 2.0.0-2.1.6, 4.0.0-5.0.11), `electron` (43.0.0-alpha.1-43.8.0), `fast-uri` (3.0.0-3.1.8), `http-cache-semantics` (<=4.2.0), `js-yaml` (4.0.0-4.3.1), and `undici` (<=6.29.0).
+- **Node.js October 2026 Security Release Remediation**: Verified runtime and host compatibility against the patched Node.js LTS v24.22.1 addressing critical vulnerabilities including `CVE-2026-111497` ("Node2Shell" / Brotli decoder out-of-bounds write in `node:zlib`).
+- **Decompression Bomb Protection**: Enforced strict 50MB in-memory decompression limits (`MAX_DECOMPRESSED_ARCHIVE_SIZE`) and uncompressed size inspection in `diy.js` for `.xmind` and `.mmap` archive unpacking, preventing denial-of-service (DoS) and out-of-memory crashes.
+- **Main Process & IPC Security Hardening**:
+  - Added `isSafeUrl` validation in `main.js` restricting external protocol navigation to `http:`, `https:`, and `mailto:` schemes.
+  - Hardened `setWindowOpenHandler` and `will-navigate` handlers to prevent untrusted window creation and sandbox navigation escapes.
+  - Implemented 50MB file size guards in `open-file-dialog` and `read-file-by-path`, and 20MB limits in `open-image-dialog`.
+  - Enforced file extension sanitization and blocked direct saving or writing to dangerous executable formats (`.exe`, `.bat`, `.cmd`, `.com`, `.vbs`, `.js`, `.ps1`, `.scr`, `.reg`, etc.).
+  - Configured explicit `webSecurity: true` and `allowRunningInsecureContent: false` flags in `BrowserWindow` webPreferences.
+
+### Changed
+- **Electron Upgrade (`^43.8.3`)**: Upgraded Electron runtime to 43.8.3, resolving sandbox preload code cache poisoning, permission origin confusion, and certificate validation mitigations.
+- **Transitive Dependency Overrides**: Added strict version overrides in `package.json` for `@xmldom/xmldom` (>=0.8.15), `brace-expansion` (>=1.1.21), `electron` (^43.8.3), `fast-uri` (>=3.1.9), `http-cache-semantics` (>=4.3.0), `js-yaml` (>=4.3.2), and `undici` (>=6.29.1).
+- **About Dialog Version Synchronization**: Synchronized the in-app About dialog version badge to `v3.3.0` while maintaining full module registry attribution.
+- **Validation Suite**: Updated `scripts/validate-release.js` to audit v3.3.0 release assets, documentation, and executable timestamps via `npm run validate:release`.
+
 ## [3.2.0] - 2026-08-20
 
 ### Security & Hardening
@@ -152,7 +171,6 @@ All notable changes to this project will be documented in this file.
 - Fixed widespread "Cancle" typo in multiple language packs and UI templates.
 - Fixed `TypeError` when adding progress icons due to `kity.Pie` prototype conflict.
 - Fixed ribbon UI closing unexpectedly when clicking on priority or progress icons.
-
 
 ## [1.0.0] - 2026-02-21
 

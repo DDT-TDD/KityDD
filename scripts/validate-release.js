@@ -69,13 +69,13 @@ const releaseInputs = [
     path.join('local-kity-minder', 'bower_components', 'kityminder-core', 'dist', 'kityminder.core.js')
 ];
 
-pushCheck(checks, 'package version', version === '3.2.0', version);
-pushCheck(checks, 'README current release', files.readme.includes('**v3.2.0** (2026-08-20)'), 'README current release block');
+pushCheck(checks, 'package version', version === '3.3.0', version);
+pushCheck(checks, 'README current release', files.readme.includes('**v3.3.0** (2026-10-26)'), 'README current release block');
 pushCheck(checks, 'README theme count', files.readme.includes('34 colour themes'), 'README feature summary');
 pushCheck(checks, 'README documents validation command', files.readme.includes('npm run validate:release'), 'README validation section');
-pushCheck(checks, 'CHANGELOG current version', files.changelog.includes('## [3.2.0] - 2026-08-20'), 'CHANGELOG heading');
+pushCheck(checks, 'CHANGELOG current version', files.changelog.includes('## [3.3.0] - 2026-10-26'), 'CHANGELOG heading');
 pushCheck(checks, 'CHANGELOG mentions validation script', files.changelog.includes('`npm run validate:release`'), 'CHANGELOG release notes');
-pushCheck(checks, 'RELEASE_NOTES current version', files.releaseNotes.includes('## v3.2.0 (2026-08-20)'), 'RELEASE_NOTES heading');
+pushCheck(checks, 'RELEASE_NOTES current version', files.releaseNotes.includes('## v3.3.0 (2026-10-26)'), 'RELEASE_NOTES heading');
 pushCheck(checks, 'RELEASE_NOTES mentions validation command', files.releaseNotes.includes('`npm run validate:release`'), 'RELEASE_NOTES validation section');
 pushCheck(checks, 'RELEASE_NOTES security description', files.releaseNotes.includes('vulnerability remediation') || files.releaseNotes.includes('security') || files.releaseNotes.includes('modules'), 'security audit and module listing wording');
 pushCheck(checks, 'package scripts include validate:release', files.packageJson.includes('"validate:release": "node scripts/validate-release.js"'), 'package.json scripts');

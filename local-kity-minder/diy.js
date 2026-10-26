@@ -840,6 +840,8 @@
         return { root: convertNode(rootNode), template: 'default', theme: 'fresh-blue', version: '1.4.50' };
     }
 
+    var MAX_DECOMPRESSED_ARCHIVE_SIZE = 50 * 1024 * 1024; // 50MB limit guard
+
     function importXMindFromBase64(base64Content) {
         if (typeof JSZip === 'undefined') {
             alert('JSZip library not loaded.');
@@ -849,8 +851,14 @@
         return JSZip.loadAsync(base64Content, { base64: true }).then(function (zip) {
             var contentFile = zip.file('content.xml') || zip.file('content.json');
             if (!contentFile) throw new Error('Invalid XMind file: content.xml or content.json not found');
+            if (contentFile._data && contentFile._data.uncompressedSize && contentFile._data.uncompressedSize > MAX_DECOMPRESSED_ARCHIVE_SIZE) {
+                throw new Error('Decompressed file exceeds safety limit of 50MB.');
+            }
             return contentFile.async('string');
         }).then(function (content) {
+            if (content && content.length > MAX_DECOMPRESSED_ARCHIVE_SIZE) {
+                throw new Error('Decompressed file exceeds safety limit of 50MB.');
+            }
             var mindmapData;
             if (content.startsWith('{')) {
                 mindmapData = convertXMindJSONToKityMinder(JSON.parse(content));
@@ -971,8 +979,14 @@
         return JSZip.loadAsync(base64Content, { base64: true }).then(function (zip) {
             var contentFile = zip.file('Document.xml') || zip.file('document.xml');
             if (!contentFile) throw new Error('Invalid MindManager file: Document.xml not found');
+            if (contentFile._data && contentFile._data.uncompressedSize && contentFile._data.uncompressedSize > MAX_DECOMPRESSED_ARCHIVE_SIZE) {
+                throw new Error('Decompressed file exceeds safety limit of 50MB.');
+            }
             return contentFile.async('string');
         }).then(function (content) {
+            if (content && content.length > MAX_DECOMPRESSED_ARCHIVE_SIZE) {
+                throw new Error('Decompressed file exceeds safety limit of 50MB.');
+            }
             var xmlDoc = new DOMParser().parseFromString(content, 'text/xml');
             if (xmlDoc.querySelector('parsererror')) throw new Error('Invalid MindManager XML structure');
             var mindmapData = convertMindManagerToKityMinder(xmlDoc);

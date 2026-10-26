@@ -1,8 +1,31 @@
-const { app, BrowserWindow, dialog, ipcMain, Menu } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, Menu, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
 let mainWindow;
+
+// ---------------------------------------------------------
+// SECURITY CONSTANTS & HELPERS
+// ---------------------------------------------------------
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB decompression & buffer guard
+const MAX_IMAGE_SIZE = 20 * 1024 * 1024; // 20MB image guard
+const ALLOWED_MINDMAP_EXTS = ['km', 'json', 'xmind', 'mmap', 'md', 'xml', 'mm', 'drwdd'];
+const ALLOWED_IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'];
+const DANGEROUS_EXTENSIONS = [
+  '.exe', '.bat', '.cmd', '.com', '.vbs', '.vbe', '.js', '.jse',
+  '.wsf', '.wsh', '.msc', '.ps1', '.ps1xml', '.ps2', '.ps2xml',
+  '.psc1', '.psc2', '.pif', '.scr', '.reg', '.dll', '.bin'
+];
+
+function isSafeUrl(targetUrl) {
+  if (!targetUrl || typeof targetUrl !== 'string') return false;
+  try {
+    const parsed = new URL(targetUrl);
+    return ['http:', 'https:', 'mailto:'].includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+}
 
 // ---------------------------------------------------------
 // RECENT FILES
@@ -183,7 +206,14 @@ function createMenu() {
     {
       role: 'help',
       submenu: [
-        { label: 'Learn More', click: () => { require('electron').shell.openExternal('https://github.com/fex-team/kityminder-editor'); } },
+        {
+          label: 'Learn More',
+          click: () => {
+            if (isSafeUrl('https://github.com/fex-team/kityminder-editor')) {
+              shell.openExternal('https://github.com/fex-team/kityminder-editor');
+            }
+          }
+        },
         {
           label: 'About KityDD', click: () => {
             mainWindow.webContents.send('show-about');
@@ -205,6 +235,8 @@ function createWindow() {
       nodeIntegration: true,
       contextIsolation: false,
       spellcheck: true,
+      webSecurity: true,
+      allowRunningInsecureContent: false,
     },
     icon: path.join(__dirname, 'icon.png')
   });
@@ -217,17 +249,17 @@ function createWindow() {
 
   // Security: Prevent untrusted in-app window creation, route external links to OS default browser
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (/^https?:\/\//i.test(url) || /^mailto:/i.test(url)) {
-      require('electron').shell.openExternal(url);
+    if (isSafeUrl(url)) {
+      shell.openExternal(url);
     }
     return { action: 'deny' };
   });
 
   // Security: Prevent window navigation to external origins
   mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
-    if (/^https?:\/\//i.test(navigationUrl)) {
-      event.preventDefault();
-      require('electron').shell.openExternal(navigationUrl);
+    event.preventDefault();
+    if (isSafeUrl(navigationUrl)) {
+      shell.openExternal(navigationUrl);
     }
   });
 
@@ -261,7 +293,7 @@ app.on('activate', () => {
 ipcMain.handle('open-file-dialog', async (event, options = {}) => {
   const defaultOptions = {
     filters: [
-      { name: 'Supported Mindmaps', extensions: ['km', 'json', 'xmind', 'mmap', 'md', 'xml', 'mm', 'drwdd'] },
+      { name: 'Supported Mindmaps', extensions: ALLOWED_MINDMAP_EXTS },
       { name: 'All Files', extensions: ['*'] }
     ],
     properties: ['openFile']
@@ -270,34 +302,62 @@ ipcMain.handle('open-file-dialog', async (event, options = {}) => {
   const { canceled, filePaths } = await dialog.showOpenDialog(Object.assign(defaultOptions, options));
   if (canceled || !filePaths.length) return null;
 
-  const ext = path.extname(filePaths[0]).toLowerCase().replace('.', '');
+  const targetPath = filePaths[0];
+  try {
+    const stat = fs.statSync(targetPath);
+    if (stat.size > MAX_FILE_SIZE) {
+      console.warn(`File exceeds maximum allowed size (${MAX_FILE_SIZE} bytes):`, targetPath);
+      return null;
+    }
+  } catch (e) {
+    return null;
+  }
+
+  const ext = path.extname(targetPath).toLowerCase().replace('.', '');
+  if (!ALLOWED_MINDMAP_EXTS.includes(ext) && ext !== '') {
+    // If not in allowed list, still check not dangerous
+    if (DANGEROUS_EXTENSIONS.includes(`.${ext}`)) return null;
+  }
 
   let content;
   if (ext === 'xmind' || ext === 'mmap') {
-    content = fs.readFileSync(filePaths[0], 'base64');
+    content = fs.readFileSync(targetPath, 'base64');
   } else {
-    content = fs.readFileSync(filePaths[0], 'utf8');
+    content = fs.readFileSync(targetPath, 'utf8');
   }
 
   // Track in recent files
-  addRecentFile(filePaths[0]);
+  addRecentFile(targetPath);
 
   return {
     content: content,
-    filePath: filePaths[0],
+    filePath: targetPath,
     extension: ext
   };
 });
 
 ipcMain.handle('open-image-dialog', async (event) => {
   const { canceled, filePaths } = await dialog.showOpenDialog({
-    filters: [{ name: 'Images', extensions: ['jpg', 'png', 'gif', 'jpeg', 'svg', 'webp'] }],
+    filters: [{ name: 'Images', extensions: ALLOWED_IMAGE_EXTS }],
     properties: ['openFile']
   });
   if (canceled || !filePaths.length) return null;
-  const ext = path.extname(filePaths[0]).toLowerCase().replace('.', '');
-  // read as base64
-  const content = fs.readFileSync(filePaths[0], 'base64');
+
+  const targetPath = filePaths[0];
+  try {
+    const stat = fs.statSync(targetPath);
+    if (stat.size > MAX_IMAGE_SIZE) {
+      console.warn(`Image exceeds maximum allowed size (${MAX_IMAGE_SIZE} bytes):`, targetPath);
+      return null;
+    }
+  } catch (e) {
+    return null;
+  }
+
+  const ext = path.extname(targetPath).toLowerCase().replace('.', '');
+  if (!ALLOWED_IMAGE_EXTS.includes(ext)) return null;
+
+  const content = fs.readFileSync(targetPath, 'base64');
   let mime = 'image/png';
   if (ext === 'jpg' || ext === 'jpeg') mime = 'image/jpeg';
   else if (ext === 'gif') mime = 'image/gif';
@@ -306,8 +366,7 @@ ipcMain.handle('open-image-dialog', async (event) => {
   return `data:${mime};base64,${content}`;
 });
 
-
-ipcMain.handle('save-file-dialog', async (event, payload) => {
+ipcMain.handle('save-file-dialog', async (event, payload = {}) => {
   const { data, isBinary, options = {} } = payload;
 
   const defaultOptions = {
@@ -320,12 +379,18 @@ ipcMain.handle('save-file-dialog', async (event, payload) => {
   const { canceled, filePath } = await dialog.showSaveDialog(Object.assign(defaultOptions, options));
   if (canceled || !filePath) return null;
 
+  const ext = path.extname(filePath).toLowerCase();
+  if (DANGEROUS_EXTENSIONS.includes(ext)) {
+    console.error('Blocked attempt to save dangerous executable file:', filePath);
+    return null;
+  }
+
   if (isBinary) {
     // Handle base64 PNG data
-    const base64Data = data.replace(/^data:image\/png;base64,/, "");
+    const base64Data = (data || '').replace(/^data:image\/png;base64,/, "");
     fs.writeFileSync(filePath, base64Data, 'base64');
   } else {
-    fs.writeFileSync(filePath, data, 'utf8');
+    fs.writeFileSync(filePath, data || '', 'utf8');
   }
 
   // Track in recent files (for mindmap saves, not PNG exports)
@@ -334,12 +399,18 @@ ipcMain.handle('save-file-dialog', async (event, payload) => {
   return filePath;
 });
 
-ipcMain.handle('save-file-direct', async (event, payload) => {
+ipcMain.handle('save-file-direct', async (event, payload = {}) => {
   const { filePath, data } = payload;
-  if (!filePath) return null;
+  if (!filePath || typeof filePath !== 'string') return null;
+
+  const ext = path.extname(filePath).toLowerCase();
+  if (DANGEROUS_EXTENSIONS.includes(ext)) {
+    console.error('Blocked direct write to dangerous executable extension:', filePath);
+    return null;
+  }
 
   try {
-    fs.writeFileSync(filePath, data, 'utf8');
+    fs.writeFileSync(filePath, data || '', 'utf8');
     addRecentFile(filePath);
     return filePath;
   } catch (err) {
@@ -351,7 +422,6 @@ ipcMain.handle('save-file-direct', async (event, payload) => {
 ipcMain.on('set-modified-status', (event, isModified) => {
   if (mainWindow) {
     mainWindow.isModified = isModified;
-    // Update window title or other indicators if needed
     let title = 'KityDD';
     if (isModified) title += ' *';
     mainWindow.setTitle(title);
@@ -368,19 +438,32 @@ ipcMain.on('confirm-close', (event, confirm) => {
 // Read a file by path (used for opening recent files)
 ipcMain.handle('read-file-by-path', async (event, filePath) => {
   try {
-    if (!fs.existsSync(filePath)) return null;
-    const ext = path.extname(filePath).toLowerCase().replace('.', '');
+    if (!filePath || typeof filePath !== 'string') return null;
+    const resolvedPath = path.resolve(filePath);
+    if (!fs.existsSync(resolvedPath)) return null;
+
+    const stat = fs.statSync(resolvedPath);
+    if (stat.isDirectory() || stat.size > MAX_FILE_SIZE) {
+      console.warn(`File exceeds limit or is a directory:`, resolvedPath);
+      return null;
+    }
+
+    const ext = path.extname(resolvedPath).toLowerCase().replace('.', '');
+    if (!ALLOWED_MINDMAP_EXTS.includes(ext)) {
+      console.warn(`File extension not permitted: ${ext}`);
+      return null;
+    }
+
     let content;
     if (ext === 'xmind' || ext === 'mmap') {
-      content = fs.readFileSync(filePath, 'base64');
+      content = fs.readFileSync(resolvedPath, 'base64');
     } else {
-      content = fs.readFileSync(filePath, 'utf8');
+      content = fs.readFileSync(resolvedPath, 'utf8');
     }
-    addRecentFile(filePath);
-    return { content, filePath, extension: ext };
+    addRecentFile(resolvedPath);
+    return { content, filePath: resolvedPath, extension: ext };
   } catch (err) {
     console.error('Failed to read recent file:', err);
     return null;
   }
 });
-
